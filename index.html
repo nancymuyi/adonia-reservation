@@ -1,0 +1,1576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Adonia Tea House — Reservations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<style>
+:root{
+  --cream:#f8f3eb;--cream-dark:#ede5d5;--cream-mid:#f2ead8;
+  --green:#1e3a2f;--green-mid:#2d5240;--green-light:#3d6b52;
+  --gold:#b8913a;--gold-light:#d4aa5a;
+  --rose:#c9756a;--rose-light:#f8eeec;
+  --text:#1a1a18;--text-muted:#6b6355;
+  --border:#c8b89a;--border-light:#ddd4c0;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--cream);color:var(--text);font-family:'EB Garamond',serif;min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 15% 15%,rgba(184,145,58,.07) 0%,transparent 55%),radial-gradient(ellipse at 85% 85%,rgba(30,58,47,.07) 0%,transparent 55%);pointer-events:none;z-index:0;}
+
+/* LANG */
+.lang-bar{display:flex;justify-content:flex-end;padding:10px 24px 0;position:relative;z-index:10;}
+.lang-btn{background:none;border:1px solid var(--border);padding:5px 14px;font-family:'Cinzel',serif;font-size:10px;letter-spacing:.18em;color:var(--text-muted);cursor:pointer;border-radius:2px;transition:all .2s;}
+.lang-btn:hover,.lang-btn.active{border-color:var(--gold);color:var(--gold);}
+.lang-sep{color:var(--border);margin:0 4px;line-height:28px;}
+
+/* HEADER */
+header{position:relative;text-align:center;padding:40px 24px 36px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,rgba(30,58,47,.04) 0%,transparent 100%);}
+.header-ornament{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:18px;color:var(--gold);font-size:12px;letter-spacing:.3em;}
+.header-ornament::before,.header-ornament::after{content:'';flex:1;max-width:100px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
+.brand-name{font-family:'Cinzel',serif;font-size:clamp(24px,5vw,44px);font-weight:600;color:var(--green);letter-spacing:.15em;line-height:1.1;}
+.brand-tagline{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:17px;color:var(--text-muted);margin-top:7px;}
+
+/* INTRO */
+.page-intro{max-width:580px;margin:44px auto 0;text-align:center;padding:0 24px;}
+.page-intro h1{font-family:'Cormorant Garamond',serif;font-size:clamp(20px,3.5vw,30px);font-weight:300;color:var(--green);letter-spacing:.06em;}
+.page-intro p{margin-top:10px;font-size:16px;color:var(--text-muted);line-height:1.75;}
+.divider{display:flex;align-items:center;justify-content:center;gap:12px;margin:28px auto;max-width:260px;color:var(--gold);font-size:16px;}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* STEPS */
+.steps-bar{display:flex;justify-content:center;align-items:center;padding:0 24px;margin-bottom:36px;}
+.step{display:flex;flex-direction:column;align-items:center;gap:6px;}
+.step-connector{width:50px;height:1px;background:var(--border);margin-bottom:22px;transition:background .4s;}
+.step-connector.active{background:var(--gold);}
+.step-dot{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--border);background:var(--cream);display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-size:11px;color:var(--text-muted);transition:all .4s;}
+.step.active .step-dot{border-color:var(--gold);background:var(--gold);color:white;}
+.step.done .step-dot{border-color:var(--green);background:var(--green);color:white;}
+.step-label{font-size:10px;letter-spacing:.12em;color:var(--text-muted);white-space:nowrap;font-family:'Cinzel',serif;}
+.step.active .step-label{color:var(--gold);}
+.step.done .step-label{color:var(--green);}
+
+/* PANELS */
+.form-container{max-width:720px;margin:0 auto;padding:0 24px 80px;position:relative;z-index:1;}
+.form-panel{background:white;border:1px solid var(--border);border-radius:2px;overflow:hidden;box-shadow:0 4px 40px rgba(30,58,47,.08),0 1px 0 rgba(184,145,58,.2);}
+.panel-header{background:var(--green);padding:22px 30px;display:flex;align-items:center;gap:12px;}
+.panel-header-icon{width:34px;height:34px;border-radius:50%;border:1px solid rgba(184,145,58,.5);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.panel-header h2{font-family:'Cormorant Garamond',serif;font-weight:400;font-size:20px;color:var(--cream);letter-spacing:.06em;}
+.panel-header p{font-size:13px;color:rgba(248,243,235,.6);margin-top:2px;}
+.panel-body{padding:32px 30px;}
+@media(max-width:520px){.panel-body{padding:22px 16px;}.panel-header{padding:18px;}}
+
+/* FIELDS */
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:22px;}
+@media(max-width:500px){.field-row{grid-template-columns:1fr;}}
+.field-group{display:flex;flex-direction:column;gap:7px;margin-bottom:22px;}
+.field-group.no-mb{margin-bottom:0;}
+label.field-label{font-family:'Cinzel',serif;font-size:10.5px;letter-spacing:.18em;color:var(--green);text-transform:uppercase;}
+label.field-label .req{color:var(--rose);margin-left:3px;}
+input[type="text"],input[type="tel"],input[type="date"],input[type="email"],textarea{width:100%;border:1px solid var(--border);border-radius:2px;padding:11px 14px;font-family:'EB Garamond',serif;font-size:16px;color:var(--text);background:var(--cream-mid);transition:border-color .25s,box-shadow .25s;appearance:none;-webkit-appearance:none;outline:none;}
+input:focus,textarea:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(184,145,58,.12);background:white;}
+input.invalid{border-color:var(--rose);box-shadow:0 0 0 3px rgba(201,117,106,.12);}
+.error-msg{font-size:12px;color:var(--rose);margin-top:4px;font-style:italic;display:none;}
+textarea{resize:vertical;min-height:76px;line-height:1.6;}
+
+/* GUEST PICKER */
+.guest-picker{display:flex;align-items:center;border:1px solid var(--border);border-radius:2px;overflow:hidden;width:fit-content;}
+.guest-btn{width:42px;height:44px;border:none;background:var(--cream-dark);color:var(--green);font-size:20px;cursor:pointer;transition:background .2s;display:flex;align-items:center;justify-content:center;}
+.guest-btn:hover{background:var(--border);}
+.guest-count{width:56px;text-align:center;font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--green);background:white;border:none;border-left:1px solid var(--border);border-right:1px solid var(--border);height:44px;line-height:44px;}
+
+/* DAY BADGE */
+.day-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:2px;font-size:13px;font-style:italic;margin-top:10px;}
+.day-badge.weekday{background:rgba(30,58,47,.08);color:var(--green);border:1px solid rgba(30,58,47,.2);}
+.day-badge.weekend{background:rgba(184,145,58,.1);color:#8a6820;border:1px solid rgba(184,145,58,.3);}
+
+/* TIME SLOTS */
+.time-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px;}
+.time-slot{position:relative;}
+.time-slot input[type="radio"]{position:absolute;opacity:0;width:0;}
+.time-slot label{display:flex;flex-direction:column;align-items:center;padding:11px 4px;border:1px solid var(--border);border-radius:2px;cursor:pointer;transition:all .2s;background:var(--cream-mid);font-family:'EB Garamond',serif;font-size:15px;color:var(--text);gap:2px;width:100%;box-sizing:border-box;text-align:center;}
+.time-slot label .slot-tag{font-size:10px;letter-spacing:.1em;color:var(--text-muted);font-family:'Cinzel',serif;min-height:0;}
+.time-slot label .slot-tag:empty{display:none;}
+.time-slot input:checked+label{border-color:var(--green);background:var(--green);color:white;}
+.time-slot input:checked+label .slot-tag{color:rgba(248,243,235,.65);}
+.time-slot label:hover{border-color:var(--gold);background:rgba(184,145,58,.07);}
+.time-slot.full label{opacity:.6;cursor:not-allowed;text-decoration:none;color:var(--text-muted);}
+.time-slot.full label .slot-tag{color:var(--rose);opacity:1;}
+.time-slot.full input{pointer-events:none;}
+
+/* ══════════════════════════════════════
+   SET ORDER BUILDER
+══════════════════════════════════════ */
+.order-builder{margin-top:4px;}
+
+/* Counter row at top */
+.set-counter-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;}
+.set-counter-card{flex:1;min-width:200px;border:1px solid var(--border);border-radius:2px;padding:16px 18px;background:var(--cream-mid);transition:border-color .25s;}
+.set-counter-card.has-items{border-color:var(--green-light);background:rgba(61,107,82,.04);}
+.set-counter-card .scc-name{font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--green);}
+.set-counter-card .scc-price{font-family:'Cinzel',serif;font-size:11px;color:var(--gold);letter-spacing:.08em;margin-top:3px;}
+.set-counter-card .scc-desc{font-size:13px;color:var(--text-muted);font-style:italic;margin:6px 0 12px;line-height:1.5;}
+.set-picker{display:flex;align-items:center;gap:0;border:1px solid var(--border);border-radius:2px;overflow:hidden;width:fit-content;}
+.set-picker-btn{width:36px;height:36px;border:none;background:var(--cream-dark);color:var(--green);font-size:18px;cursor:pointer;transition:background .2s;display:flex;align-items:center;justify-content:center;}
+.set-picker-btn:hover{background:var(--border);}
+.set-picker-val{width:48px;text-align:center;font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--green);background:white;border:none;border-left:1px solid var(--border);border-right:1px solid var(--border);height:36px;line-height:36px;}
+
+/* Decide later card */
+.decide-later-wrap{margin-top:12px;margin-bottom:4px;}
+.decide-later-card{position:relative;}
+.decide-later-card input[type="checkbox"]{position:absolute;opacity:0;width:0;}
+.decide-later-card label{display:flex;align-items:center;gap:14px;padding:14px 16px;border:1.5px dashed var(--border);border-radius:2px;cursor:pointer;background:var(--cream-mid);transition:all .25s;user-select:none;}
+.decide-later-card input:checked+label{border-color:var(--gold);border-style:solid;background:rgba(184,145,58,.07);}
+.dl-icon{font-size:22px;flex-shrink:0;}
+.dl-text-wrap{flex:1;}
+.dl-main{font-family:'Cormorant Garamond',serif;font-size:17px;color:var(--green);}
+.dl-sub{font-size:13px;color:var(--text-muted);font-style:italic;margin-top:2px;}
+.dl-check-box{width:20px;height:20px;border:1.5px solid var(--border);border-radius:2px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:transparent;transition:all .2s;background:white;}
+.decide-later-card input:checked+label .dl-check-box{background:var(--gold);border-color:var(--gold);color:white;}
+
+/* Per-set rows list */
+.set-rows-list{display:flex;flex-direction:column;gap:10px;margin-top:4px;}
+
+/* Individual set row */
+.set-row{border:1px solid var(--border-light);border-radius:2px;overflow:hidden;transition:border-color .25s;}
+.set-row.has-diet{border-color:rgba(184,145,58,.45);}
+.set-row-header{display:flex;align-items:center;gap:10px;padding:11px 14px;background:var(--cream-mid);cursor:pointer;user-select:none;}
+.set-row-number{width:22px;height:22px;border-radius:50%;background:var(--green);color:white;font-family:'Cinzel',serif;font-size:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.set-row-type{font-family:'Cormorant Garamond',serif;font-size:16px;color:var(--green);flex:1;}
+.set-row-diet-preview{font-size:12px;color:var(--text-muted);font-style:italic;margin-left:auto;padding-right:4px;}
+.set-row-chevron{color:var(--gold);font-size:12px;transition:transform .25s;flex-shrink:0;}
+.set-row.open .set-row-chevron{transform:rotate(180deg);}
+.set-row-body{display:none;padding:14px;border-top:1px solid var(--border-light);background:white;}
+.set-row.open .set-row-body{display:block;}
+
+/* Diet chips in set row */
+.diet-chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px;}
+.diet-chip{position:relative;}
+.diet-chip input[type="checkbox"]{position:absolute;opacity:0;width:0;}
+.diet-chip label{display:flex;align-items:center;gap:5px;padding:6px 10px;border:1px solid var(--border);border-radius:20px;cursor:pointer;font-size:13px;color:var(--text-muted);background:var(--cream-mid);transition:all .2s;white-space:nowrap;}
+.diet-chip label .chip-icon{font-size:14px;}
+.diet-chip input:checked+label{border-color:var(--green-light);background:rgba(61,107,82,.1);color:var(--green);font-weight:500;}
+.diet-chip-none{position:relative;}
+.diet-chip-none input[type="radio"]{position:absolute;opacity:0;width:0;}
+.diet-chip-none label{display:flex;align-items:center;gap:5px;padding:6px 10px;border:1px solid var(--border);border-radius:20px;cursor:pointer;font-size:13px;color:var(--text-muted);background:var(--cream-mid);transition:all .2s;}
+.diet-chip-none input:checked+label{border-color:var(--border);background:var(--cream-dark);color:var(--text);}
+
+/* Advance notice inline */
+.adv-inline{font-size:12px;color:var(--rose);font-style:italic;margin-top:6px;display:none;}
+.adv-inline.show{display:block;}
+
+/* Order summary pill row */
+.order-summary-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;padding:14px 16px;background:var(--cream);border:1px solid var(--border);border-radius:2px;}
+.order-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:13px;border:1px solid var(--border-light);}
+.order-pill.full{background:rgba(30,58,47,.08);border-color:rgba(30,58,47,.2);color:var(--green);}
+.order-pill.mini{background:rgba(184,145,58,.1);border-color:rgba(184,145,58,.3);color:#7a6020;}
+.order-pill.decide{background:var(--cream-dark);color:var(--text-muted);}
+.order-total{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.1em;color:var(--gold);margin-top:10px;width:100%;}
+
+/* weekend child note */
+.info-box{padding:12px 15px;border-radius:2px;font-size:14px;color:var(--text-muted);line-height:1.65;margin-top:12px;}
+.info-box.gold{background:rgba(184,145,58,.08);border:1px solid rgba(184,145,58,.28);}
+.info-box.green{background:rgba(30,58,47,.06);border:1px solid rgba(30,58,47,.18);}
+.info-box.rose{background:var(--rose-light);border:1px solid rgba(201,117,106,.3);}
+.info-box strong{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.14em;display:block;margin-bottom:4px;}
+.info-box.gold strong{color:var(--gold);}
+.info-box.green strong{color:var(--green);}
+.info-box.rose strong{color:var(--rose);}
+
+/* SECTION */
+.section-sep{border:none;border-top:1px solid var(--border);margin:28px 0;}
+.section-lbl{font-family:'Cinzel',serif;font-size:9.5px;letter-spacing:.22em;color:var(--gold);text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:12px;}
+.section-lbl::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* NOTICES */
+.notice{background:rgba(184,145,58,.07);border:1px solid rgba(184,145,58,.3);border-radius:2px;padding:13px 17px;font-size:14px;color:var(--text-muted);line-height:1.7;margin-bottom:22px;}
+.notice strong{color:var(--gold);font-weight:600;display:block;margin-bottom:4px;font-family:'Cinzel',serif;font-size:10px;letter-spacing:.15em;}
+.notice.warn{background:var(--rose-light);border-color:rgba(201,117,106,.35);}
+.notice.warn strong{color:var(--rose);}
+/* Plain (no-box) note */
+.plain-note{font-size:14px;color:var(--text-muted);line-height:1.75;margin-bottom:22px;}
+.plain-note-label{display:block;font-family:'Cinzel',serif;font-size:9.5px;letter-spacing:.18em;color:var(--text-muted);margin-bottom:5px;opacity:.7;}
+
+/* DEPOSIT */
+.deposit-box{background:var(--rose-light);border:1px solid rgba(201,117,106,.3);border-radius:2px;padding:18px 20px;margin-top:18px;}
+.deposit-box h4{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.18em;color:var(--rose);margin-bottom:8px;}
+.deposit-box p{font-size:14px;color:var(--text-muted);line-height:1.7;}
+.deposit-amount{font-family:'Cormorant Garamond',serif;font-size:26px;color:var(--green);margin-top:10px;}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(20,30,25,.55);z-index:100;display:none;align-items:center;justify-content:center;padding:24px;}
+.modal-overlay.show{display:flex;}
+.modal-box{background:white;border:1px solid var(--border);border-radius:2px;max-width:440px;width:100%;padding:32px;box-shadow:0 20px 60px rgba(0,0,0,.2);animation:scaleIn .3s ease-out;}
+.modal-box h3{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--green);margin-bottom:12px;}
+.modal-box p{font-size:15px;color:var(--text-muted);line-height:1.75;margin-bottom:22px;}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;}
+.modal-btn{padding:10px 20px;border:1px solid var(--border);border-radius:2px;font-family:'Cinzel',serif;font-size:10px;letter-spacing:.14em;cursor:pointer;transition:all .2s;background:none;color:var(--text-muted);}
+.modal-btn.confirm{background:var(--green);border-color:var(--green);color:white;}
+.modal-btn:hover{border-color:var(--gold);color:var(--gold);}
+.modal-btn.confirm:hover{background:var(--green-mid);}
+
+/* SUMMARY */
+.summary-card{background:var(--cream);border:1px solid var(--border);border-radius:2px;padding:20px 24px;margin-bottom:24px;}
+.summary-title{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.18em;color:var(--gold);margin-bottom:14px;}
+.summary-row{display:flex;justify-content:space-between;align-items:baseline;font-size:15px;border-bottom:1px dashed var(--border);padding-bottom:8px;margin-bottom:8px;gap:16px;}
+.summary-row:last-child{border-bottom:none;padding-bottom:0;margin-bottom:0;}
+.summary-row .k{color:var(--text-muted);font-style:italic;flex-shrink:0;}
+.summary-row .v{color:var(--text);text-align:right;}
+.summary-order-detail{margin-top:6px;padding:12px 14px;background:white;border:1px solid var(--border-light);border-radius:2px;font-size:14px;line-height:1.8;color:var(--text-muted);}
+.summary-order-detail .sod-row{display:flex;align-items:baseline;gap:8px;}
+.summary-order-detail .sod-num{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.1em;color:var(--gold);flex-shrink:0;}
+
+/* BUTTONS */
+.btn-primary{padding:15px 40px;background:var(--green);border:none;border-radius:2px;color:var(--cream);font-family:'Cinzel',serif;font-size:12px;letter-spacing:.2em;cursor:pointer;transition:all .3s;}
+.btn-primary:hover{background:var(--green-mid);transform:translateY(-1px);box-shadow:0 4px 20px rgba(30,58,47,.25);}
+.btn-ghost{padding:14px 24px;background:transparent;border:1px solid var(--border);color:var(--text-muted);font-family:'Cinzel',serif;font-size:11px;letter-spacing:.16em;cursor:pointer;border-radius:2px;transition:all .2s;}
+.btn-ghost:hover{border-color:var(--gold);color:var(--gold);}
+.btn-row{display:flex;gap:12px;justify-content:space-between;align-items:center;flex-wrap:wrap;}
+
+/* SUCCESS */
+.success-screen{display:none;text-align:center;padding:56px 30px;}
+.success-icon{width:70px;height:70px;border-radius:50%;border:2px solid var(--gold);display:inline-flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:22px;background:rgba(184,145,58,.08);animation:scaleIn .5s ease-out;}
+@keyframes scaleIn{from{transform:scale(.5);opacity:0;}to{transform:scale(1);opacity:1;}}
+.success-screen h2{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:var(--green);letter-spacing:.06em;margin-bottom:12px;}
+.success-screen p{color:var(--text-muted);font-size:16px;line-height:1.8;max-width:420px;margin:0 auto 24px;}
+.booking-ref{display:inline-block;background:var(--green);color:var(--cream);padding:9px 26px;font-family:'Cinzel',serif;font-size:13px;letter-spacing:.2em;border-radius:2px;margin-bottom:14px;}
+.sms-note{font-size:13px;color:var(--text-muted);font-style:italic;margin-bottom:28px;}
+
+.fade-in{animation:fadeUp .5s ease-out both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+@keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+footer{text-align:center;padding:22px 24px;font-size:13px;color:var(--text-muted);border-top:1px solid var(--border);font-style:italic;line-height:1.8;}
+
+/* ══════════════════════════════════════
+   MOBILE RESPONSIVE (@media max 480px)
+══════════════════════════════════════ */
+@media(max-width:480px){
+
+  /* Header */
+  .header-ornament{font-size:10px;gap:10px;}
+  .brand-tagline{font-size:15px;}
+
+  /* Page intro */
+  .page-intro{margin-top:28px;}
+  .page-intro h1{font-size:22px;}
+  .page-intro p{font-size:15px;}
+  .divider{margin:20px auto;}
+
+  /* Steps bar — shrink connectors and labels */
+  .steps-bar{padding:0 12px;gap:0;}
+  .step-connector{width:24px;}
+  .step-dot{width:26px;height:26px;font-size:10px;}
+  .step-label{font-size:9px;letter-spacing:.06em;}
+
+  /* Form container */
+  .form-container{padding:0 12px 60px;}
+
+  /* Panel */
+  .panel-header{padding:16px;}
+  .panel-header h2{font-size:18px;}
+  .panel-body{padding:20px 16px;}
+
+  /* Fields */
+  .field-row{grid-template-columns:1fr;gap:14px;}
+
+  /* Inputs — larger touch targets */
+  input[type="text"],input[type="tel"],input[type="date"],input[type="email"],select,textarea{
+    font-size:16px; /* prevents iOS zoom on focus */
+    padding:13px 14px;
+  }
+
+  /* Guest picker */
+  .guest-btn{width:48px;height:48px;font-size:22px;}
+  .guest-count{width:60px;height:48px;line-height:48px;font-size:24px;}
+
+  /* Time slots — 2 per row on mobile */
+  .time-grid{grid-template-columns:repeat(2,1fr);gap:8px;}
+  .time-slot label{padding:12px 4px;font-size:14px;}
+
+  /* Set counter cards — stack vertically */
+  .set-counter-row{flex-direction:column;gap:10px;}
+  .set-counter-card{min-width:unset;width:100%;}
+  .set-picker-btn{width:44px;height:44px;}
+  .set-picker-val{height:44px;line-height:44px;font-size:20px;}
+
+  /* Decide later card */
+  .decide-later-card label{padding:12px 14px;gap:10px;}
+  .dl-main{font-size:15px;}
+  .dl-sub{font-size:12px;}
+
+  /* Diet chips — wrap nicely */
+  .diet-chips{gap:6px;}
+  .diet-chip label,.diet-chip-none label{padding:8px 10px;font-size:13px;}
+
+  /* Set rows */
+  .set-row-header{padding:12px;}
+  .set-row-body{padding:12px;}
+
+  /* Order pills */
+  .order-summary-row{padding:12px;}
+  .order-pill{font-size:12px;padding:4px 8px;}
+
+  /* Summary rows — stack key/value on narrow screens */
+  .summary-row{flex-direction:column;gap:2px;align-items:flex-start;}
+  .summary-row .v{text-align:left;font-size:15px;}
+
+  /* Buttons — full width on mobile */
+  .btn-primary{width:100%;padding:16px;font-size:11px;}
+  .btn-ghost{width:100%;padding:14px;text-align:center;}
+  .btn-row{flex-direction:column-reverse;gap:10px;}
+
+  /* Modal */
+  .modal-box{padding:24px 20px;}
+  .modal-box h3{font-size:19px;}
+  .modal-box p{font-size:14px;}
+  .modal-actions{flex-direction:column-reverse;gap:8px;}
+  .modal-btn{width:100%;text-align:center;padding:12px;}
+
+  /* Success screen */
+  .success-screen{padding:40px 20px;}
+  .booking-ref{font-size:11px;padding:8px 20px;}
+
+  /* Deposit box */
+  .deposit-box{padding:14px 16px;}
+  .deposit-amount{font-size:22px;}
+
+  /* Info boxes */
+  .info-box{font-size:13px;padding:11px 14px;}
+
+  /* Plain notes */
+  .plain-note{font-size:13px;}
+
+  /* Footer */
+  footer{font-size:12px;padding:18px 16px;}
+}
+
+/* Mid-range phones (481-640px) */
+@media(min-width:481px) and (max-width:640px){
+  .time-grid{grid-template-columns:repeat(3,1fr);gap:8px;}
+  .set-counter-row{flex-direction:column;}
+  .btn-row{flex-wrap:wrap;}
+}
+
+</style>
+</head>
+<body>
+
+<!-- Lang -->
+<div class="lang-bar">
+  <button class="lang-btn active" id="btn-en" onclick="setLang('en')">EN</button>
+  <span class="lang-sep">|</span>
+  <button class="lang-btn" id="btn-zh" onclick="setLang('zh')">中文</button>
+</div>
+
+<!-- Header -->
+<header>
+  <div class="header-ornament"><span>✦</span><span>EST. 2003 · VANCOUVER, BC</span><span>✦</span></div>
+  <div class="brand-name">Adonia Tea House</div>
+  <div class="brand-tagline" id="hdr-tagline">Traditional British Afternoon Tea</div>
+</header>
+
+<!-- Intro -->
+<div class="page-intro fade-in">
+  <h1 id="intro-title">Reserve Your Table</h1>
+  <p id="intro-sub">Complete the form below to book your experience.<br>A confirmation email will be sent to your inbox.</p>
+  <div class="divider">✦</div>
+</div>
+
+<!-- Steps -->
+<div class="steps-bar fade-in">
+  <div class="step active" id="step-1"><div class="step-dot">1</div><div class="step-label" id="sl1">DATE & TIME</div></div>
+  <div class="step-connector" id="conn-1"></div>
+  <div class="step" id="step-2"><div class="step-dot">2</div><div class="step-label" id="sl2">ORDER & DETAILS</div></div>
+  <div class="step-connector" id="conn-2"></div>
+  <div class="step" id="step-3"><div class="step-dot">3</div><div class="step-label" id="sl3">CONFIRM</div></div>
+</div>
+
+<div class="form-container">
+
+<!-- ══ PANEL 1 ══ -->
+<div id="panel-1" class="form-panel fade-in">
+  <div class="panel-header">
+    <div class="panel-header-icon">🗓</div>
+    <div><h2 id="ph1-title">Choose Date & Time</h2><p id="ph1-sub">Closed every Tuesday</p></div>
+  </div>
+  <div class="panel-body">
+
+    <div class="field-row">
+      <div class="field-group no-mb">
+        <label class="field-label" id="lbl-date">Date <span class="req">*</span></label>
+        <input type="date" id="date" onchange="onDateChange()">
+        <div class="error-msg" id="date-err">Please select a date</div>
+      </div>
+      <div class="field-group no-mb">
+        <label class="field-label" id="lbl-guests">Number of Guests <span class="req">*</span></label>
+        <div class="guest-picker">
+          <button class="guest-btn" onclick="changeGuest(-1)">−</button>
+          <div class="guest-count" id="guest-display">2</div>
+          <button class="guest-btn" onclick="changeGuest(1)">+</button>
+        </div>
+        <div id="large-party-notice" style="display:none;margin-top:10px;" class="info-box rose">
+          <strong id="large-party-title">LARGE PARTY</strong>
+          <span id="large-party-body">For parties of 10 or more, please call us to book: <strong>604-261-0049</strong></span>
+        </div>
+      </div>
+    </div>
+
+    <div id="day-badge-wrap"></div>
+    <div id="closed-notice" class="info-box rose" style="display:none;">
+      <strong id="closed-title">CLOSED ON TUESDAYS</strong>
+      <span id="closed-body">We are closed every Tuesday. Please select another date.</span>
+    </div>
+
+    <hr class="section-sep">
+    <div class="section-lbl" id="lbl-time-sec">SELECT A TIME</div>
+    <div id="time-ph" style="font-size:15px;font-style:italic;color:var(--text-muted)">Please select a date first.</div>
+    <div class="time-grid" id="time-grid" style="display:none;"></div>
+    <div class="error-msg" id="time-err" style="margin-top:8px;">Please select a time slot</div>
+
+    <hr class="section-sep">
+    <div class="btn-row" style="justify-content:flex-end;">
+      <button class="btn-primary" onclick="goStep2()" id="btn-continue">Continue →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PANEL 2 ══ -->
+<div id="panel-2" class="form-panel fade-in" style="display:none;">
+  <div class="panel-header">
+    <div class="panel-header-icon">🍵</div>
+    <div><h2 id="ph2-title">Order & Guest Details</h2><p id="ph2-sub">Sets, dietary requirements & contact info</p></div>
+  </div>
+  <div class="panel-body">
+
+    <!-- ── SET ORDER SECTION ── -->
+    <div class="section-lbl" id="lbl-svc-sec">AFTERNOON TEA SETS</div>
+
+    <!-- Weekend policy note -->
+    <div id="wknd-policy-note" class="plain-note" style="display:none;margin-bottom:4px;">
+      <span class="plain-note-label" id="wpn-title">WEEKEND POLICY</span>
+      <span id="wpn-body">Each guest aged 6 and above must order one set.</span>
+    </div>
+
+    <div id="wkday-policy-note" class="plain-note" style="display:none;margin-bottom:4px;">
+      <span class="plain-note-label" id="wkpn-title">WEEKDAY ORDERING</span>
+      <span id="wkpn-body">Sets are optional on weekdays — you may also order individually from our menu. Each guest should order at least one item.</span>
+    </div>
+
+    <div class="order-builder" id="order-builder">
+
+      <!-- Step A: How many of each set -->
+      <div class="set-counter-row">
+        <!-- Full -->
+        <div class="set-counter-card" id="scc-full">
+          <div class="scc-name" id="scc-full-name">Afternoon Tea</div>
+          <div class="scc-price">$59 / person · includes a pot of tea</div>
+          <div class="scc-desc" id="scc-full-desc">Finger sandwiches, scones & pastries</div>
+          <div class="set-picker">
+            <button class="set-picker-btn" onclick="changeSet('full',-1)">−</button>
+            <div class="set-picker-val" id="set-full-count">0</div>
+            <button class="set-picker-btn" onclick="changeSet('full',1)">+</button>
+          </div>
+        </div>
+        <!-- Mini -->
+        <div class="set-counter-card" id="scc-mini">
+          <div class="scc-name" id="scc-mini-name">Mini Afternoon Tea</div>
+          <div class="scc-price">$42 / person · includes a pot of tea</div>
+          <div class="scc-desc" id="scc-mini-desc">A lighter selection of classics</div>
+          <div class="set-picker">
+            <button class="set-picker-btn" onclick="changeSet('mini',-1)">−</button>
+            <div class="set-picker-val" id="set-mini-count">0</div>
+            <button class="set-picker-btn" onclick="changeSet('mini',1)">+</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Decide later -->
+      <div class="decide-later-wrap" id="decide-later-wrap" style="display:none;">
+        <div class="decide-later-card">
+          <input type="checkbox" id="decide-later" onchange="onDecideLater()">
+          <label for="decide-later">
+            <span class="dl-icon">🕐</span>
+            <span class="dl-text-wrap">
+              <span class="dl-main" id="dl-text">I'll decide my order on the day</span>
+              <span class="dl-sub" id="dl-sub-text">You're welcome to order from our full menu on arrival</span>
+            </span>
+            <span class="dl-check-box">✓</span>
+          </label>
+        </div>
+        <div id="decide-later-diet-notice" class="info-box rose" style="display:none;margin-top:10px;font-size:13px;">
+          <strong id="dl-notice-title">DIETARY RESTRICTIONS</strong>
+          <span id="dl-notice-body">Vegan, Gluten-Free, and Nut Allergy requests must be communicated at least 1 day before your visit. Vegetarian options are available on the day.</span>
+        </div>
+      </div>
+
+      <!-- Validation note -->
+      <div id="sets-err" style="display:none;margin-top:10px;padding:12px 16px;background:var(--rose-light);border:1px solid rgba(201,117,106,.4);border-radius:2px;font-size:14px;color:var(--rose);line-height:1.6;"></div>
+
+      <!-- Step B: Per-set dietary rows (generated dynamically) -->
+      <div id="set-rows-wrap" style="display:none;margin-top:18px;">
+        <p id="set-rows-intro" style="font-size:14px;color:var(--text-muted);font-style:italic;margin-bottom:12px;line-height:1.6;"></p>
+        <div class="set-rows-list" id="set-rows-list"></div>
+      </div>
+
+      <!-- Order summary -->
+      <div id="order-summary-wrap" style="display:none;">
+        <div class="order-summary-row" id="order-pills"></div>
+        <div id="deposit-preview" style="display:none;" class="deposit-box">
+          <h4 id="dep-title">DEPOSIT REQUIRED — LARGE PARTY</h4>
+          <p id="dep-body">Parties of 11 or more require a 50% deposit at time of booking.</p>
+          <div class="deposit-amount" id="deposit-amt"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CONTACT ── -->
+    <hr class="section-sep">
+    <div class="section-lbl" id="lbl-contact">CONTACT</div>
+    <div class="field-row">
+      <div class="field-group no-mb">
+        <label class="field-label" id="lbl-name">Full Name <span class="req">*</span></label>
+        <input type="text" id="name" placeholder="Jane Smith">
+        <div class="error-msg" id="name-err">Please enter your name</div>
+      </div>
+      <div class="field-group no-mb">
+        <label class="field-label" id="lbl-phone">Mobile Number <span class="req">*</span></label>
+        <input type="tel" id="phone" placeholder="604-XXX-XXXX">
+        <div class="error-msg" id="phone-err">Please enter a valid phone number</div>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label" id="lbl-email">Email Address <span class="req">*</span></label>
+      <input type="email" id="email" placeholder="your@email.com">
+      <div class="error-msg" id="email-err">Please enter a valid email address</div>
+    </div>
+
+    <!-- ── ADDITIONAL NOTES ── -->
+    <div class="field-group" style="margin-top:6px;">
+      <label class="field-label" id="lbl-other-diet">Other Allergies / Additional Notes</label>
+      <textarea id="other-notes" placeholder="Any other allergies, dietary notes, or requests…"></textarea>
+    </div>
+
+    <div class="plain-note">
+      <span id="no-hc-body">We do not provide high chairs or booster seats. Children under 6 are welcome to share from a parent's set.</span>
+    </div>
+
+    <div class="plain-note">
+      <span class="plain-note-label" id="cancel-title">CANCELLATION POLICY</span>
+      <span id="cancel-body">Please notify us at least 24 hours in advance to cancel or modify your reservation. Tables are held for 15 minutes past the reservation time.</span>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-ghost" onclick="goStep1()" id="btn-back1">← Back</button>
+      <button class="btn-primary" onclick="goStep3()" id="btn-review">Review Booking →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PANEL 3 ══ -->
+<div id="panel-3" class="form-panel fade-in" style="display:none;">
+  <div class="panel-header">
+    <div class="panel-header-icon">✦</div>
+    <div><h2 id="ph3-title">Confirm Your Booking</h2><p id="ph3-sub">Please review all details before confirming</p></div>
+  </div>
+
+  <!-- Loading screen -->
+  <div id="loading-screen" style="display:none;text-align:center;padding:56px 30px;">
+    <div style="font-size:36px;animation:spin 1.5s linear infinite;display:inline-block;">☕</div>
+    <p style="margin-top:16px;font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--green);" id="loading-text">Sending your reservation…</p>
+  </div>
+
+  <div class="success-screen" id="success-screen">
+    <div class="success-icon">☕</div>
+    <h2 id="succ-title">Booking Confirmed!</h2>
+    <p id="succ-body">Thank you for your reservation.<br>We look forward to welcoming you to Adonia Tea House.</p>
+    <div class="booking-ref" id="booking-ref">REF #IVC-000000</div><br>
+    <p style="font-size:14px;color:var(--text-muted);font-style:italic;margin-bottom:24px;" id="succ-sms">A confirmation email has been sent to your inbox.</p>
+    <button class="btn-ghost" onclick="resetAll()" id="btn-again">Make Another Reservation</button>
+  </div>
+
+  <div id="confirm-body" class="panel-body">
+    <div class="summary-card">
+      <div class="summary-title" id="summary-heading">BOOKING SUMMARY</div>
+      <div id="summary-rows"></div>
+      <div id="summary-order-detail" class="summary-order-detail" style="display:none;margin-top:4px;"></div>
+    </div>
+    <div id="deposit-confirm-box" style="display:none;" class="deposit-box">
+      <h4 id="dep-c-title">DEPOSIT REQUIRED</h4>
+      <p id="dep-c-body">Our team will contact you to process the 50% deposit for your large party reservation.</p>
+      <div class="deposit-amount" id="deposit-confirm-amt"></div>
+    </div>
+    <div class="plain-note">
+      <span class="plain-note-label" id="before-title">BEFORE YOU CONFIRM</span>
+      <span id="before-body">Once submitted, a confirmation email will be sent to the address below. Please double-check your email before confirming. To modify or cancel, please call us directly.</span>
+    </div>
+    <div class="btn-row">
+      <button class="btn-ghost" onclick="goStep2Rev()" id="btn-edit">← Edit</button>
+      <button class="btn-primary" onclick="submitBooking()" id="btn-submit">Confirm Reservation</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- /form-container -->
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal-box">
+    <h3 id="modal-title"></h3>
+    <p id="modal-body"></p>
+    <div class="modal-actions">
+      <button class="modal-btn" id="modal-cancel" onclick="closeModal()">Cancel</button>
+      <button class="modal-btn confirm" id="modal-ok" onclick="modalOk()">Yes, proceed</button>
+    </div>
+  </div>
+</div>
+
+<footer id="footer-text">
+  © Adonia Tea House · 2057 W 41st Ave, Vancouver, BC · 604-261-0049<br>
+  Closed Tuesdays · Wed–Mon: 11 AM – 4:30 PM (Weekdays) · 11 AM – 5:30 PM (Weekends)
+</footer>
+
+<script>
+/* ═══════════ TABLES ═══════════ */
+// min = standard seats (blue), max = with extra seat (orange)
+// crowded = true means extra seat triggers a confirmation
+const TABLES=[
+  {id:'WL',   min:2, max:2, sofa:false, crowded:false},
+  {id:'WR',   min:2, max:2, sofa:false, crowded:false},
+  {id:'RL',   min:2, max:3, sofa:false, crowded:false},
+  {id:'RR',   min:2, max:3, sofa:false, crowded:false},
+  {id:'RF',   min:2, max:4, sofa:false, crowded:true,
+    msg:{en:"The glass round table (RF) comfortably seats 3. A 4th seat is possible but may feel a little cosy — would you like to proceed?",
+         zh:"玻璃圓桌最舒適容納3位，第4位稍微擁擠，是否接受？"}},
+  {id:'RM',   min:4, max:6, sofa:false, crowded:false},
+  {id:'FOLD', min:4, max:8, sofa:false, crowded:false},
+  {id:'SOFA', min:1, max:3, sofa:true,  crowded:true,
+    msg:{en:"The sofa table is a low coffee table, not a traditional dining table. It's a relaxed, lounge-style seating — would you like to proceed?",
+         zh:"沙發桌為低矮咖啡桌，非一般餐桌，用餐體驗較為休閒，是否接受？"}},
+];
+
+// Live bookings fetched from Sheets via doGet
+// key: "YYYY-MM-DD|HH:MM" → [{tableId, guests}]
+let BOOKINGS={};
+let bookingsLoaded=false; // track if we've fetched for current date
+
+async function fetchBookings(dateStr){
+  if(!dateStr||isTuesday(dateStr)) return;
+  try {
+    const url = SCRIPT_URL + '?action=availability&date=' + dateStr;
+    const res  = await fetch(url);
+    const json = await res.json();
+    // json = { "11:00": [{tableId:"WL",guests:2},...], "13:15": [...], ... }
+    Object.entries(json).forEach(([time, bookingList])=>{
+      BOOKINGS[dateStr+'|'+time] = bookingList;
+    });
+    bookingsLoaded=true;
+  } catch(err){
+    // If fetch fails, fall back to showing all slots as available
+    console.warn('Could not fetch availability:', err);
+    bookingsLoaded=false;
+  }
+}
+function isTuesday(d){return new Date(d+'T00:00:00').getDay()===2;}
+function isWeekend(d){const w=new Date(d+'T00:00:00').getDay();return w===0||w===6;}
+function getSlots(dateStr){
+  if(!dateStr||isTuesday(dateStr))return[];
+  if(isWeekend(dateStr))return[
+    {time:'11:00',label:'11:00 AM',tag:'AFTERNOON TEA'},
+    {time:'13:15',label:'1:15 PM', tag:'AFTERNOON TEA'},
+    {time:'15:30',label:'3:30 PM', tag:'AFTERNOON TEA'},
+  ];
+  // Weekday: every 15 minutes, 11:00 AM to 2:30 PM (last seating, finish by 4:30)
+  const slots=[];
+  const times=[
+    {time:'11:00',label:'11:00 AM'},{time:'11:15',label:'11:15 AM'},
+    {time:'11:30',label:'11:30 AM'},{time:'11:45',label:'11:45 AM'},
+    {time:'12:00',label:'12:00 PM'},{time:'12:15',label:'12:15 PM'},
+    {time:'12:30',label:'12:30 PM'},{time:'12:45',label:'12:45 PM'},
+    {time:'13:00',label:'1:00 PM'}, {time:'13:15',label:'1:15 PM'},
+    {time:'13:30',label:'1:30 PM'}, {time:'13:45',label:'1:45 PM'},
+    {time:'14:00',label:'2:00 PM'}, {time:'14:15',label:'2:15 PM'},
+    {time:'14:30',label:'2:30 PM'},
+  ];
+  return times;
+}
+function timeToMin(t){ const [h,m]=t.split(':').map(Number); return h*60+m; }
+
+function candidateTables(dateStr, time, guests){
+  const reqMin = timeToMin(time);
+  const booked = [];
+  let foldGuests = 0;
+
+  Object.entries(BOOKINGS).forEach(([key, bookings])=>{
+    if(!key.startsWith(dateStr+'|')) return;
+    const slotTime = key.split('|')[1];
+    bookings.forEach(b=>{
+      const startMin = timeToMin(slotTime);
+      const leaveMin = b.bufferTime ? timeToMin(b.bufferTime) : b.leavingTime ? timeToMin(b.leavingTime) + 15 : startMin + 135;
+      console.log(b.tableId, 'startMin:',startMin,'leaveMin:',leaveMin,'reqMin:',reqMin,'occupied:',reqMin>=startMin&&reqMin<leaveMin);
+      if(reqMin >= startMin && reqMin < leaveMin){
+        booked.push(b.tableId.toUpperCase());
+        if(b.tableId.toUpperCase()==='FOLD') foldGuests = Math.max(foldGuests, b.guests);
+      }
+    });
+  });
+
+  console.log('booked tables:', booked, '| candidates:', TABLES.filter(t=>!booked.includes(t.id.toUpperCase())&&guests>=t.min&&guests<=t.max).map(t=>t.id));
+
+  return TABLES.filter(t=>{
+    if(booked.includes(t.id.toUpperCase())) return false;
+    if(guests < t.min || guests > t.max) return false;
+    if(t.id==='SOFA' && foldGuests >= 8) return false;
+    return true;
+  });
+}
+
+/* ═══════════ LANGUAGE ═══════════ */
+let lang='en';
+const TX={
+  hdr_tagline:   {en:'Traditional British Afternoon Tea',zh:'英式傳統下午茶'},
+  intro_title:   {en:'Reserve Your Table',zh:'預約您的座位'},
+  intro_sub:     {en:'Complete the form below to book your experience.<br>A confirmation email will be sent to your inbox.',zh:'請填寫以下表格完成訂位。<br>確認信將傳送至您的電子信箱。'},
+  sl1:{en:'DATE & TIME',zh:'日期時段'},
+  sl2:{en:'ORDER & DETAILS',zh:'套餐與資料'},
+  sl3:{en:'CONFIRM',zh:'確認訂位'},
+  ph1_title:     {en:'Choose Date & Time',zh:'選擇日期與時段'},
+  ph1_sub:       {en:'Closed every Tuesday',zh:'每週二公休'},
+  lbl_date:      {en:'Date',zh:'日期'},
+  lbl_guests:    {en:'Number of Guests',zh:'人數'},
+  closed_title:  {en:'CLOSED ON TUESDAYS',zh:'週二公休'},
+  closed_body:   {en:'We are closed every Tuesday. Please select another date.',zh:'本店每週二公休，請選擇其他日期。'},
+  badge_wknd:    {en:'Weekend — Afternoon Tea only',zh:'週末 — 僅供應下午茶套餐'},
+  badge_wkday:   {en:'Weekday — Lunch & Afternoon Tea',zh:'平日 — 供應午餐及下午茶'},
+  lbl_time_sec:  {en:'SELECT A TIME',zh:'選擇場次'},
+  time_ph:       {en:'Please select a date first.',zh:'請先選擇日期。'},
+  time_loading:  {en:'Checking availability…',zh:'查詢中…'},
+  fully_booked:  {en:'FULLY BOOKED',zh:'已額滿'},
+  large_party_title:{en:'LARGE PARTY',zh:'大型訂位'},
+  large_party_body: {en:'For parties of 10 or more, please call us to book:',zh:'10位或以上請致電預訂：'},
+  btn_continue:  {en:'Continue →',zh:'繼續 →'},
+  ph2_title:     {en:'Order & Guest Details',zh:'套餐選擇與賓客資料'},
+  ph2_sub:       {en:'Sets, dietary requirements & contact info',zh:'套餐、飲食需求及聯絡資訊'},
+  lbl_svc_sec:   {en:'AFTERNOON TEA SETS',zh:'下午茶套餐'},
+  wpn_title:     {en:'WEEKEND POLICY',zh:'週末點餐規定'},
+  wpn_body:      {en:'Each guest aged 6 and above must order one set.',zh:'週末每位6歲（含）以上須點一份套餐。'},
+  wkpn_title:    {en:'WEEKDAY ORDERING',zh:'平日點餐方式'},
+  wkpn_body:     {en:'Sets are optional on weekdays — you may also order individually from our menu. Each guest should order at least one item.',zh:'平日可自由選擇菜單品項，不強制點套餐，每位至少點一樣。'},
+  scc_full_name: {en:'Afternoon Tea',zh:'下午茶套餐'},
+  scc_full_desc: {en:'Finger sandwiches, scones & pastries',zh:'手指三明治、司康及精緻糕點'},
+  scc_mini_name: {en:'Mini Afternoon Tea',zh:'迷你下午茶套餐'},
+  scc_mini_desc: {en:'A lighter selection of classics',zh:'份量較輕的精選點心'},
+  dl_text:       {en:'I\'ll decide my order on the day',zh:'到店時再決定'},
+  dl_sub_text:   {en:'You\'re welcome to order from our full menu on arrival',zh:'到店後可從完整菜單點餐，無需提前決定'},
+  dl_notice_title:{en:'DIETARY RESTRICTIONS',zh:'飲食限制提醒'},
+  dl_notice_body: {en:'Vegan, Gluten-Free, and Nut Allergy requests must be communicated at least 1 day before your visit. Vegetarian options are available on the day.',zh:'純素、無麩質及堅果過敏需提前至少1天通知。蛋奶素當日可提供。'},
+  sets_err:      {en:'Please select at least one set, or choose "decide on the day"',zh:'請至少選擇一份套餐，或選擇「到店時再決定」'},
+  set_rows_intro:{en:'Select any dietary requirements for each set below. You\'re welcome to confirm details with us on the day.',zh:'請為每份套餐選擇飲食需求（如有）。細節可於到店時再確認。'},
+  adv_title:     {en:'ADVANCE NOTICE REQUIRED',zh:'需提前通知'},
+  adv_body:      {en:'Vegan, Gluten-Free, and Nut Allergy requests must be made at least 1 day before your visit. Vegetarian options are available on the day.',zh:'純素、無麩質及堅果過敏需提前至少1天通知。蛋奶素當日可提供。'},
+  dep_title:     {en:'DEPOSIT REQUIRED — LARGE PARTY',zh:'大型訂位需支付訂金'},
+  dep_body:      {en:'Parties of 11 or more require a 50% deposit at time of booking.',zh:'11位或以上須預付50%訂金。'},
+  lbl_contact:   {en:'CONTACT',zh:'聯絡資訊'},
+  lbl_name:      {en:'Full Name',zh:'姓名'},
+  lbl_phone:     {en:'Mobile Number',zh:'手機號碼'},
+  lbl_email:     {en:'Email Address',zh:'電子郵件'},
+  err_email:     {en:'Please enter a valid email address',zh:'請輸入有效電子郵件'},
+  lbl_other_diet:{en:'Other Allergies / Additional Notes',zh:'其他過敏或備註'},
+  other_ph:      {en:'Any other allergies, dietary notes, or requests…',zh:'其他過敏、飲食備註或特別需求…'},
+  no_hc_title:   {en:'PLEASE NOTE',zh:'溫馨提示'},
+  no_hc_body:    {en:'We do not provide high chairs or booster seats. Children under 6 are welcome to share from a parent\'s set.',zh:'本店不提供兒童高腳椅。6歲以下可與家長共用套餐。'},
+  cancel_title:  {en:'CANCELLATION POLICY',zh:'取消政策'},
+  cancel_body:   {en:'Please notify us at least 24 hours in advance to cancel or modify your reservation. Tables are held for 15 minutes past the reservation time.',zh:'如需取消或更改訂位，請於24小時前通知。逾時15分鐘座位恕無法保留。'},
+  btn_back1:     {en:'← Back',zh:'← 返回'},
+  btn_review:    {en:'Review Booking →',zh:'預覽訂位 →'},
+  ph3_title:     {en:'Confirm Your Booking',zh:'確認訂位資料'},
+  ph3_sub:       {en:'Please review all details before confirming',zh:'送出前請確認所有資訊'},
+  succ_title:    {en:'Booking Confirmed!',zh:'訂位已確認！'},
+  succ_body:     {en:'Thank you for your reservation.<br>We look forward to welcoming you to Adonia Tea House.',zh:'感謝您的預約。<br>期待在 Adonia Tea House 與您相會。'},
+  succ_sms:      {en:'A confirmation email has been sent to your inbox.',zh:'確認信已傳送至您的電子信箱。'},
+  btn_again:     {en:'Make Another Reservation',zh:'再次訂位'},
+  summary_heading:{en:'BOOKING SUMMARY',zh:'訂位摘要'},
+  dep_c_title:   {en:'DEPOSIT REQUIRED',zh:'訂位訂金'},
+  dep_c_body:    {en:'Our team will contact you to process the 50% deposit for your large party reservation.',zh:'我們的團隊將聯繫您處理50%訂金。'},
+  before_title:  {en:'BEFORE YOU CONFIRM',zh:'送出前請確認'},
+  before_body:   {en:'Once submitted, a confirmation email will be sent to the address below. Please double-check your email before confirming. To modify or cancel, please call us directly.',zh:'送出後確認信將傳送至下方電子郵件。送出前請確認信箱無誤。如需更改或取消，請直接來電。'},
+  btn_edit:      {en:'← Edit',zh:'← 修改'},
+  btn_submit:    {en:'Confirm Reservation',zh:'確認送出訂位'},
+  footer:        {en:'© Adonia Tea House · 2057 W 41st Ave, Vancouver, BC · 604-261-0049\nClosed Tuesdays · Wed–Mon: 11 AM – 4:30 PM (Weekdays) · 11 AM – 5:30 PM (Weekends)',
+                  zh:'© Adonia Tea House · 2057 W 41st Ave, Vancouver, BC · 604-261-0049\n週二公休 · 週三至週一：平日 11:00–16:30 · 假日 11:00–17:30'},
+  err_date:      {en:'Please select a date',zh:'請選擇日期'},
+  err_time:      {en:'Please select a time slot',zh:'請選擇場次'},
+  err_name:      {en:'Please enter your name',zh:'請輸入姓名'},
+  err_phone:     {en:'Please enter a valid phone number',zh:'請輸入有效手機號碼'},
+  modal_cancel:  {en:'Cancel',zh:'取消'},
+  modal_ok:      {en:'Yes, proceed',zh:'接受，繼續'},
+  sofa_title:    {en:'Sofa Table',zh:'沙發桌提醒'},
+  glass_title:   {en:'Glass Round Table',zh:'玻璃圓桌提醒'},
+  diet_none:     {en:'No restrictions',zh:'無飲食限制'},
+  diet_veg:      {en:'Vegetarian',zh:'蛋奶素'},
+  diet_vegan:    {en:'Vegan',zh:'純素'},
+  diet_df:       {en:'Dairy-Free',zh:'無乳製品'},
+  diet_gf:       {en:'Gluten-Free',zh:'無麩質'},
+  diet_nut:      {en:'Nut Allergy',zh:'堅果過敏'},
+  set_full_short:{en:'Afternoon Tea',zh:'下午茶'},
+  set_mini_short:{en:'Mini Afternoon Tea',zh:'迷你下午茶'},
+  set_decide:    {en:'To decide on arrival',zh:'到店時決定'},
+  k_name:        {en:'Name',zh:'姓名'}, k_mobile:{en:'Mobile',zh:'手機'},
+  k_email:       {en:'Email',zh:'電子郵件'},
+  k_date:        {en:'Date',zh:'日期'},  k_time:{en:'Time',zh:'場次'},
+  k_guests:      {en:'Guests',zh:'人數'},k_sets:{en:'Sets Ordered',zh:'套餐'},
+  k_notes:       {en:'Notes',zh:'備註'}, v_none:{en:'None',zh:'無'},
+  v_guests:      {en:'guests',zh:'位'},
+  order_total:   {en:'Estimated total',zh:'預估金額'},
+  before_tax:    {en:'(before tax)',zh:'（稅前）'},
+};
+function t(k){const o=TX[k];return o?(o[lang]||o.en):k;}
+
+const IDMAP={
+  'hdr-tagline':'hdr_tagline','intro-title':'intro_title',
+  'sl1':'sl1','sl2':'sl2','sl3':'sl3',
+  'ph1-title':'ph1_title','ph1-sub':'ph1_sub',
+  'closed-title':'closed_title','closed-body':'closed_body',
+  'large-party-title':'large_party_title','large-party-body':'large_party_body',
+  'lbl-time-sec':'lbl_time_sec','time-ph':'time_ph',
+  'btn-continue':'btn_continue',
+  'ph2-title':'ph2_title','ph2-sub':'ph2_sub',
+  'lbl-svc-sec':'lbl_svc_sec',
+  'wpn-title':'wpn_title','wpn-body':'wpn_body',
+  'wkpn-title':'wkpn_title','wkpn-body':'wkpn_body',
+  'scc-full-name':'scc_full_name','scc-full-desc':'scc_full_desc',
+  'scc-mini-name':'scc_mini_name','scc-mini-desc':'scc_mini_desc',
+  'dl-text':'dl_text','dl-sub-text':'dl_sub_text',
+  'dl-notice-title':'dl_notice_title','dl-notice-body':'dl_notice_body',
+  'sets-err':'sets_err',
+  'set-rows-intro':'set_rows_intro',
+  'dep-title':'dep_title','dep-body':'dep_body',
+  'lbl-contact':'lbl_contact',
+  'lbl-other-diet':'lbl_other_diet',
+  'no-hc-title':'no_hc_title','no-hc-body':'no_hc_body',
+  'cancel-title':'cancel_title','cancel-body':'cancel_body',
+  'btn-back1':'btn_back1','btn-review':'btn_review',
+  'ph3-title':'ph3_title','ph3-sub':'ph3_sub',
+  'succ-title':'succ_title','succ-body':'succ_body','succ-sms':'succ_sms',
+  'btn-again':'btn_again','summary-heading':'summary_heading',
+  'dep-c-title':'dep_c_title','dep-c-body':'dep_c_body',
+  'before-title':'before_title','before-body':'before_body',
+  'btn-edit':'btn_edit','btn-submit':'btn_submit',
+  'date-err':'err_date','time-err':'err_time',
+  'name-err':'err_name','phone-err':'err_phone',
+};
+
+function applyLang(){
+  Object.entries(IDMAP).forEach(([id,k])=>{
+    const el=document.getElementById(id);if(!el)return;
+    el.innerHTML=t(k);
+  });
+  document.getElementById('footer-text').innerHTML=t('footer').replace('\n','<br>');
+  document.getElementById('lbl-date').innerHTML=t('lbl_date')+' <span class="req">*</span>';
+  document.getElementById('lbl-guests').innerHTML=t('lbl_guests')+' <span class="req">*</span>';
+  document.getElementById('lbl-name').innerHTML=t('lbl_name')+' <span class="req">*</span>';
+  document.getElementById('lbl-phone').innerHTML=t('lbl_phone')+' <span class="req">*</span>';
+  document.getElementById('lbl-email').innerHTML=t('lbl_email')+' <span class="req">*</span>';
+  document.getElementById('other-notes').placeholder=t('other_ph');
+  document.getElementById('modal-cancel').textContent=t('modal_cancel');
+  document.getElementById('modal-ok').textContent=t('modal_ok');
+  const d=document.getElementById('date').value;
+  if(d&&!isTuesday(d)) refreshDayUI(d);
+  rebuildSetRows();
+  updateOrderSummary();
+}
+
+function setLang(l){
+  lang=l;
+  document.getElementById('btn-en').classList.toggle('active',l==='en');
+  document.getElementById('btn-zh').classList.toggle('active',l==='zh');
+  applyLang();
+}
+
+/* ═══════════ STATE ═══════════ */
+let guestCount=2, selectedTime=null, pendingCb=null;
+// setOrders: array of {type:'full'|'mini', diet:[]} — one per set added
+let setOrders=[];
+let decideLater=false;
+
+/* ═══════════ INIT ═══════════ */
+document.getElementById('date').min=new Date().toISOString().split('T')[0];
+
+/* ═══════════ DATE / TIME ═══════════ */
+async function onDateChange(){
+  const d=document.getElementById('date').value;
+  selectedTime=null;
+  document.getElementById('time-grid').style.display='none';
+  document.getElementById('time-ph').style.display='';
+  document.getElementById('day-badge-wrap').innerHTML='';
+  document.getElementById('closed-notice').style.display='none';
+  if(!d)return;
+  if(isTuesday(d)){
+    document.getElementById('closed-notice').style.display='block';
+    return;
+  }
+  // Show loading indicator while fetching availability
+  document.getElementById('time-ph').textContent = t('time_loading');
+  document.getElementById('time-ph').style.display='';
+
+  // Fetch live bookings from Sheets
+  await fetchBookings(d);
+
+  refreshDayUI(d);
+}
+
+function refreshDayUI(d){
+  const wknd=isWeekend(d);
+  document.getElementById('day-badge-wrap').innerHTML=wknd
+    ?`<div class="day-badge weekend">☀️ ${t('badge_wknd')}</div>`
+    :`<div class="day-badge weekday">🍽 ${t('badge_wkday')}</div>`;
+  renderTimeGrid(d);
+}
+
+function renderTimeGrid(dateStr){
+  const grid=document.getElementById('time-grid');
+  const ph=document.getElementById('time-ph');
+  const slots=getSlots(dateStr);
+  grid.innerHTML='';
+  if(!slots.length){grid.style.display='none';ph.style.display='';return;}
+  ph.style.display='none';grid.style.display='grid';
+  slots.forEach(slot=>{
+    const avail=candidateTables(dateStr,slot.time,guestCount).length>0;
+    const div=document.createElement('div');
+    div.className='time-slot'+(avail?'':' full');
+    const inp=document.createElement('input');
+    inp.type='radio';inp.name='timeslot';inp.id='slot-'+slot.time.replace(':','');
+    inp.value=slot.time;inp.disabled=!avail;
+    inp.addEventListener('change',()=>{selectedTime=slot.time;document.getElementById('time-err').style.display='none';});
+    const lbl=document.createElement('label');
+    lbl.htmlFor=inp.id;
+    lbl.innerHTML=`${slot.label}<span class="slot-tag">${avail?'':t('fully_booked')}</span>`;
+    div.appendChild(inp);div.appendChild(lbl);grid.appendChild(div);
+  });
+}
+
+/* ═══════════ GUEST COUNT ═══════════ */
+function changeGuest(d){
+  guestCount=Math.max(1,Math.min(15,guestCount+d));
+  document.getElementById('guest-display').textContent=guestCount;
+
+  // Show call-to-book notice for 10+ guests
+  const notice=document.getElementById('large-party-notice');
+  const continueBtn=document.getElementById('btn-continue');
+  if(guestCount>=10){
+    notice.style.display='block';
+    continueBtn.disabled=true;
+    continueBtn.style.opacity='0.4';
+    continueBtn.style.cursor='not-allowed';
+  } else {
+    notice.style.display='none';
+    continueBtn.disabled=false;
+    continueBtn.style.opacity='';
+    continueBtn.style.cursor='';
+  }
+
+  const dateStr=document.getElementById('date').value;
+  if(dateStr&&!isTuesday(dateStr))renderTimeGrid(dateStr);
+}
+
+/* ═══════════ SET ORDERS ═══════════ */
+function getDateStr(){return document.getElementById('date').value;}
+function isCurrentWeekend(){return isWeekend(getDateStr());}
+
+function changeSet(type, delta){
+  const current=setOrders.filter(s=>s.type===type).length;
+  const total=setOrders.length;
+  if(delta>0){
+    // Cap: can't exceed guestCount
+    if(total>=guestCount)return;
+    setOrders.push({type,diet:[]});
+  } else {
+    // Remove last of this type
+    const idx=[...setOrders].reverse().findIndex(s=>s.type===type);
+    if(idx<0)return;
+    setOrders.splice(setOrders.length-1-idx,1);
+  }
+  syncSetCounters();
+  rebuildSetRows();
+  updateOrderSummary();
+  // Clear decide later if sets added
+  if(setOrders.length>0){
+    decideLater=false;
+    document.getElementById('decide-later').checked=false;
+  }
+}
+
+function syncSetCounters(){
+  const full=setOrders.filter(s=>s.type==='full').length;
+  const mini=setOrders.filter(s=>s.type==='mini').length;
+  document.getElementById('set-full-count').textContent=full;
+  document.getElementById('set-mini-count').textContent=mini;
+  document.getElementById('scc-full').classList.toggle('has-items',full>0);
+  document.getElementById('scc-mini').classList.toggle('has-items',mini>0);
+}
+
+function onDecideLater(){
+  decideLater=document.getElementById('decide-later').checked;
+  document.getElementById('decide-later-diet-notice').style.display=decideLater?'block':'none';
+  if(decideLater){
+    // Clear all sets
+    setOrders=[];
+    syncSetCounters();
+    rebuildSetRows();
+    updateOrderSummary();
+  }
+  document.getElementById('sets-err').style.display='none';
+}
+
+/* Rebuild the per-set diet rows */
+function rebuildSetRows(){
+  const wrap=document.getElementById('set-rows-wrap');
+  const list=document.getElementById('set-rows-list');
+
+  if(setOrders.length===0){wrap.style.display='none';return;}
+  wrap.style.display='block';
+  document.getElementById('set-rows-intro').textContent=t('set_rows_intro');
+
+  // Keep existing rows if possible, rebuild fresh
+  list.innerHTML='';
+  setOrders.forEach((order,i)=>{
+    const row=buildSetRow(i,order);
+    list.appendChild(row);
+  });
+  checkAdvanceNotice();
+}
+
+function buildSetRow(idx, order){
+  const typeName=order.type==='full'?t('scc_full_name'):t('scc_mini_name');
+
+  const div=document.createElement('div');
+  div.className='set-row'+(order.diet.length>0?' has-diet':'');
+  div.id='set-row-'+idx;
+
+  const preview=order.diet.length>0
+    ? order.diet.map(d=>t('diet_'+d)).join(', ')
+    : t('diet_none');
+
+  div.innerHTML=`
+    <div class="set-row-header" onclick="toggleRow(${idx})">
+      <div class="set-row-number">${idx+1}</div>
+      <div class="set-row-type">${typeName}</div>
+      <div class="set-row-diet-preview" id="row-preview-${idx}">${preview}</div>
+      <div class="set-row-chevron">▾</div>
+    </div>
+    <div class="set-row-body">
+      <div style="font-size:13px;color:var(--text-muted);font-style:italic;margin-bottom:10px;" id="row-hint-${idx}">
+        ${t('set_rows_intro').split('.')[0]}.
+      </div>
+      <div class="diet-chips" id="chips-${idx}">
+        ${buildChips(idx, order.diet)}
+      </div>
+    </div>`;
+  return div;
+}
+
+const DIET_OPTIONS=[
+  {key:'none',  icon:'✓', label_key:'diet_none'},
+  {key:'veg',   icon:'🥚',label_key:'diet_veg'},
+  {key:'vegan', icon:'🌱',label_key:'diet_vegan'},
+  {key:'df',    icon:'🥛',label_key:'diet_df'},
+  {key:'gf',    icon:'🌾',label_key:'diet_gf'},
+  {key:'nut',   icon:'🥜',label_key:'diet_nut'},
+];
+
+function buildChips(idx, selectedDiets){
+  let html='';
+  DIET_OPTIONS.forEach(opt=>{
+    if(opt.key==='none'){
+      const checked=selectedDiets.length===0?'checked':'';
+      html+=`<div class="diet-chip-none">
+        <input type="radio" name="diet-none-${idx}" id="dnone-${idx}" ${checked} onchange="setDietNone(${idx})">
+        <label for="dnone-${idx}"><span class="chip-icon">${opt.icon}</span>${t(opt.label_key)}</label>
+      </div>`;
+    } else {
+      const checked=selectedDiets.includes(opt.key)?'checked':'';
+      html+=`<div class="diet-chip">
+        <input type="checkbox" id="dc-${idx}-${opt.key}" ${checked} onchange="toggleDiet(${idx},'${opt.key}')">
+        <label for="dc-${idx}-${opt.key}"><span class="chip-icon">${opt.icon}</span>${t(opt.label_key)}</label>
+      </div>`;
+    }
+  });
+  return html;
+}
+
+function toggleRow(idx){
+  const row=document.getElementById('set-row-'+idx);
+  row.classList.toggle('open');
+}
+
+function setDietNone(idx){
+  setOrders[idx].diet=[];
+  refreshRowState(idx);
+}
+
+function toggleDiet(idx, key){
+  const order = setOrders[idx];
+  const i = order.diet.indexOf(key);
+  if(i >= 0){
+    order.diet.splice(i, 1);
+  } else {
+    // Mutually exclusive pairs
+    if(key === 'vegan') order.diet = order.diet.filter(d => d !== 'veg' && d !== 'df');
+    if(key === 'veg')   order.diet = order.diet.filter(d => d !== 'vegan');
+    if(key === 'df')    order.diet = order.diet.filter(d => d !== 'vegan');
+    order.diet.push(key);
+  }
+  refreshRowState(idx);
+  checkAdvanceNotice();
+  updateOrderSummary();
+}
+
+function refreshRowState(idx){
+  const order=setOrders[idx];
+  const row=document.getElementById('set-row-'+idx);
+  if(!row)return;
+  row.classList.toggle('has-diet',order.diet.length>0);
+  const preview=document.getElementById('row-preview-'+idx);
+  if(preview) preview.textContent=order.diet.length>0?order.diet.map(d=>t('diet_'+d)).join(', '):t('diet_none');
+  // Update none radio
+  const noneR=document.getElementById('dnone-'+idx);
+  if(noneR) noneR.checked=order.diet.length===0;
+  // Update checkboxes
+  ['veg','vegan','df','gf','nut'].forEach(k=>{
+    const cb=document.getElementById(`dc-${idx}-${k}`);
+    if(cb) cb.checked=order.diet.includes(k);
+  });
+  checkAdvanceNotice();
+  updateOrderSummary();
+}
+
+function checkAdvanceNotice(){
+  // No-op: advance notice only shown via decide-later box
+}
+
+/* ═══════════ ORDER SUMMARY ═══════════ */
+function updateOrderSummary(){
+  const wrap=document.getElementById('order-summary-wrap');
+  const pills=document.getElementById('order-pills');
+
+  if(setOrders.length===0&&!decideLater){wrap.style.display='none';return;}
+  wrap.style.display='block';
+  pills.innerHTML='';
+
+  if(decideLater){
+    const pill=document.createElement('div');
+    pill.className='order-pill decide';
+    pill.textContent='🕐 '+t('set_decide');
+    pills.appendChild(pill);
+    document.getElementById('deposit-preview').style.display='none';
+    return;
+  }
+
+  // Group by type+diet
+  setOrders.forEach((o,i)=>{
+    const pill=document.createElement('div');
+    pill.className='order-pill '+(o.type==='full'?'full':'mini');
+    const name=o.type==='full'?t('set_full_short'):t('set_mini_short');
+    const dietStr=o.diet.length>0?' · '+o.diet.map(d=>t('diet_'+d)).join(', '):'';
+    pill.innerHTML=`<span>${i+1}.</span> ${name}${dietStr}`;
+    pills.appendChild(pill);
+  });
+
+  // Total
+  const totalPrice=setOrders.reduce((s,o)=>s+(o.type==='full'?59:42),0);
+  const totalEl=document.createElement('div');
+  totalEl.className='order-total';
+  totalEl.textContent=t('order_total')+': $'+totalPrice+' CAD '+t('before_tax');
+  pills.appendChild(totalEl);
+
+  // Deposit
+  if(guestCount>=11&&setOrders.length>0){
+    const dep=Math.round(totalPrice*0.5);
+    document.getElementById('deposit-preview').style.display='block';
+    document.getElementById('deposit-amt').innerHTML=`<strong>$${dep} CAD</strong>`;
+  } else document.getElementById('deposit-preview').style.display='none';
+}
+
+/* ═══════════ MODAL ═══════════ */
+function showModal(title,body,cb){
+  document.getElementById('modal-title').textContent=title;
+  document.getElementById('modal-body').textContent=body;
+  document.getElementById('modal-cancel').textContent=t('modal_cancel');
+  document.getElementById('modal-ok').textContent=t('modal_ok');
+  pendingCb=cb;document.getElementById('modal').classList.add('show');
+}
+function closeModal(){document.getElementById('modal').classList.remove('show');pendingCb=null;}
+function modalOk(){
+  const cb=pendingCb;
+  closeModal();
+  if(cb) cb();
+}
+
+/* ═══════════ STEP NAVIGATION ═══════════ */
+function setStep(n){
+  [1,2,3].forEach(i=>{
+    document.getElementById('step-'+i).className='step';
+    document.getElementById('panel-'+i).style.display=i===n?'block':'none';
+  });
+  for(let i=1;i<n;i++){
+    document.getElementById('step-'+i).classList.add('done');
+    const c=document.getElementById('conn-'+i);if(c)c.classList.add('active');
+  }
+  document.getElementById('step-'+n).classList.add('active');
+  for(let i=n;i<=2;i++){const c=document.getElementById('conn-'+i);if(c)c.classList.remove('active');}
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function goStep1(){setStep(1);}
+function goStep2Rev(){setStep(2);}
+
+function goStep2(){
+  const d=document.getElementById('date').value;
+  let ok=true;
+  if(!d||isTuesday(d)){
+    document.getElementById('date').classList.add('invalid');
+    document.getElementById('date-err').style.display='block';ok=false;
+  } else {
+    document.getElementById('date').classList.remove('invalid');
+    document.getElementById('date-err').style.display='none';
+  }
+  if(!selectedTime){
+    document.getElementById('time-err').style.display='block';ok=false;
+  } else document.getElementById('time-err').style.display='none';
+  if(!ok)return;
+
+  // Set up panel 2 for weekday vs weekend
+  const wknd=isWeekend(d);
+  document.getElementById('wknd-policy-note').style.display=wknd?'block':'none';
+  document.getElementById('wkday-policy-note').style.display=wknd?'none':'block';
+  document.getElementById('decide-later-wrap').style.display='block';
+
+  setStep(2);
+}
+
+function goStep3(){
+  const name=document.getElementById('name').value.trim();
+  const phone=document.getElementById('phone').value.trim();
+  const email=document.getElementById('email').value.trim();
+  let ok=true;
+  if(!name){document.getElementById('name').classList.add('invalid');document.getElementById('name-err').style.display='block';ok=false;}
+  else{document.getElementById('name').classList.remove('invalid');document.getElementById('name-err').style.display='none';}
+  if(!phone||phone.replace(/\D/g,'').length<7){document.getElementById('phone').classList.add('invalid');document.getElementById('phone-err').style.display='block';ok=false;}
+  else{document.getElementById('phone').classList.remove('invalid');document.getElementById('phone-err').style.display='none';}
+  if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){document.getElementById('email').classList.add('invalid');document.getElementById('email-err').style.display='block';ok=false;}
+  else{document.getElementById('email').classList.remove('invalid');document.getElementById('email-err').style.display='none';}
+
+  // Sets validation
+  const d=getDateStr();
+  const wknd=isWeekend(d);
+  let setsErrMsg='';
+
+  if(wknd){
+    // Weekend: every guest must order a set
+    if(!decideLater && setOrders.length===0){
+      setsErrMsg = lang==='zh'
+        ? '週末每位賓客均須點一份套餐，或選擇「到店再決定」'
+        : 'On weekends, every guest must order a set — or choose "decide on the day".';
+    } else if(!decideLater && setOrders.length !== guestCount){
+      setsErrMsg = lang==='zh'
+        ? `請為每位賓客各選一份套餐（${guestCount}位需選${guestCount}份）`
+        : `Please select one set per guest — ${guestCount} guest${guestCount>1?'s':''} need${guestCount===1?'s':''} ${guestCount} set${guestCount>1?'s':''}.`;
+    }
+  } else {
+    // Weekday: sets optional, but if chosen must match guest count (or decide later)
+    if(!decideLater && setOrders.length>0 && setOrders.length !== guestCount){
+      setsErrMsg = lang==='zh'
+        ? `套餐數量須與人數相符（${guestCount}位需選${guestCount}份），或選擇「到店再決定」`
+        : `If ordering sets, please select one per guest (${guestCount} set${guestCount>1?'s':''}), or choose "decide on the day".`;
+    }
+  }
+
+  if(setsErrMsg){
+    document.getElementById('sets-err').textContent = setsErrMsg;
+    document.getElementById('sets-err').style.display='block';
+    ok=false;
+  } else {
+    document.getElementById('sets-err').style.display='none';
+  }
+
+  if(!ok){
+    // Scroll to the relevant error area
+    const scrollTarget = setsErrMsg
+      ? document.getElementById('lbl-svc-sec')
+      : document.getElementById('name');
+    if(scrollTarget) scrollTarget.scrollIntoView({behavior:'smooth', block:'center'});
+    return;
+  }
+
+  // Table confirmations — check if only crowded options remain
+  const cands = candidateTables(d, selectedTime, guestCount);
+  const nonSofa = cands.filter(x => !x.sofa);
+  console.log('goStep3 cands:', cands.map(t=>t.id), 'nonSofa:', nonSofa.map(t=>t.id));
+
+  // Only SOFA available
+  if(cands.length > 0 && nonSofa.length === 0){
+    const s = TABLES.find(x => x.id==='SOFA');
+    showModal(t('sofa_title'), s.msg[lang]||s.msg.en, buildAndGoStep3); return;
+  }
+  // RF is only non-sofa option at 4 guests (crowded)
+  if(guestCount === 4 && nonSofa.length > 0 && nonSofa.every(x => x.id==='RF')){
+    const rf = TABLES.find(x => x.id==='RF');
+    showModal(t('glass_title'), rf.msg[lang]||rf.msg.en, buildAndGoStep3); return;
+  }
+  // SOFA only crowded at 3 guests and it's the only option
+  if(guestCount === 3 && cands.length > 0 && cands.every(x => x.id==='SOFA')){
+    const s = TABLES.find(x => x.id==='SOFA');
+    showModal(t('sofa_title'), s.msg[lang]||s.msg.en, buildAndGoStep3); return;
+  }
+  buildAndGoStep3();
+}
+
+function buildAndGoStep3(){
+  const d=getDateStr();
+  const guestName=document.getElementById('name').value.trim();
+  const phone=document.getElementById('phone').value.trim();
+  const otherNotes=document.getElementById('other-notes').value.trim();
+
+  // Build order text
+  let orderLines=[];
+  if(decideLater){
+    orderLines=[t('set_decide')];
+  } else {
+    const grouped={};
+    setOrders.forEach(o=>{
+      const dietKey=o.diet.slice().sort().join('+')||'none';
+      const k=o.type+'|'+dietKey;
+      if(!grouped[k])grouped[k]={type:o.type,diet:o.diet,count:0};
+      grouped[k].count++;
+    });
+    Object.values(grouped).forEach(g=>{
+      const typeName=g.type==='full'?t('set_full_short'):t('set_mini_short');
+      const dietStr=g.diet.length>0?' ('+g.diet.map(d=>t('diet_'+d)).join(', ')+')':'';
+      orderLines.push(`${g.count}× ${typeName}${dietStr}`);
+    });
+  }
+
+  const totalPrice=decideLater?null:setOrders.reduce((s,o)=>s+(o.type==='full'?59:42),0);
+
+  const rows=[
+    {k:t('k_name'),v:guestName},
+    {k:t('k_mobile'),v:phone},
+    {k:t('k_email'),v:document.getElementById('email').value.trim()},
+    {k:t('k_date'),v:fmtDate(d)},
+    {k:t('k_time'),v:selectedTime},
+    {k:t('k_guests'),v:guestCount+' '+t('v_guests')},
+    {k:t('k_sets'),v:orderLines.join(' · ')},
+    {k:t('k_notes'),v:otherNotes||t('v_none')},
+  ];
+
+  document.getElementById('summary-rows').innerHTML=rows.map(r=>
+    `<div class="summary-row"><span class="k">${r.k}</span><span class="v">${r.v}</span></div>`
+  ).join('');
+
+  // Detailed order breakdown
+  const detail=document.getElementById('summary-order-detail');
+  if(!decideLater&&setOrders.length>0){
+    detail.style.display='block';
+    detail.innerHTML=setOrders.map((o,i)=>{
+      const typeName=o.type==='full'?t('set_full_short'):t('set_mini_short');
+      const price=o.type==='full'?59:42;
+      const dietStr=o.diet.length>0?` — ${o.diet.map(d=>t('diet_'+d)).join(', ')}`:` — ${t('diet_none')}`;
+      return `<div class="sod-row"><span class="sod-num">${i+1}</span><span>${typeName}${dietStr} · $${price}</span></div>`;
+    }).join('')+`<div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);font-family:'Cinzel',serif;font-size:10px;letter-spacing:.1em;color:var(--gold);">${t('order_total')}: $${totalPrice} CAD ${t('before_tax')}</div>`;
+  } else {
+    detail.style.display='none';
+  }
+
+  // Deposit
+  const depBox=document.getElementById('deposit-confirm-box');
+  if(guestCount>=11&&totalPrice){
+    depBox.style.display='block';
+    document.getElementById('deposit-confirm-amt').innerHTML=`<strong>$${Math.round(totalPrice*0.5)} CAD</strong>`;
+  } else depBox.style.display='none';
+
+  setStep(3);
+}
+
+// ── Google Apps Script 部署網址 ────────────────────────────────
+// 部署後把網址貼在這裡，例：
+// const SCRIPT_URL = "https://script.google.com/macros/s/XXXXX/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyORY5lToUAWfRL7p0r4sjJP7a50rbFELUr5KYR4DSLX_zkSPTrG0YRq3q9uW6KP3QAvw/exec";
+
+// ── EmailJS config ───────────────────────────────────────────────
+const EMAILJS_PUBLIC_KEY  = "--A7R1nhVuUxBAHUu";
+const EMAILJS_SERVICE_ID  = "service_uc3sh4c";
+const EMAILJS_TEMPLATE_ID = "template_fmf2h9g";
+emailjs.init(EMAILJS_PUBLIC_KEY);
+
+async function submitBooking(){
+  // 組裝訂位資料
+  const dateStr = getDateStr();
+  const name    = document.getElementById('name').value.trim();
+  const phone   = document.getElementById('phone').value.trim();
+  const notes   = document.getElementById('other-notes').value.trim();
+
+  // 套餐明細
+  let service    = "";
+  let setsDetail = "";
+  let dietary    = "";
+  let depositAmt = null;
+
+  if(decideLater){
+    service    = "decide";
+    setsDetail = "To decide on arrival";
+  } else {
+    const lines = setOrders.map((o,i)=>{
+      const type = o.type==='full' ? 'Afternoon Tea' : 'Mini Afternoon Tea';
+      const dietMap = {veg:'Vegetarian', vegan:'Vegan', df:'Dairy-Free', gf:'Gluten-Free', nut:'Nut Allergy'};
+      if(o.diet.length === 0){
+        return `${i+1}. ${type}`;
+      } else {
+        const diet = o.diet.map(d=>dietMap[d]||d).join(', ');
+        return `${i+1}. ${type} / ${diet}`;
+      }
+    });
+    setsDetail = lines.join('\n');
+    service    = setOrders.length===1 ? setOrders[0].type : 'mixed';
+
+    // Dietary summary (deduplicated)
+    const dietMap = {veg:'Vegetarian', vegan:'Vegan', df:'Dairy-Free', gf:'Gluten-Free', nut:'Nut Allergy'};
+    const allDiets = [...new Set(setOrders.flatMap(o=>o.diet))];
+    dietary = allDiets.length ? allDiets.map(d=>dietMap[d]||d).join(', ') : 'None';
+  }
+
+  // 訂金
+  if(guestCount >= 11){
+    const priceMap = {full:59, mini:42, decide:0, mixed:59};
+    const pp = priceMap[service] || 59;
+    depositAmt = Math.round(pp * guestCount * 0.5);
+  }
+
+  const payload = {
+    name, phone, lang,
+    email:      document.getElementById('email').value.trim(),
+    date:       dateStr,
+    time:       selectedTime,
+    guests:     guestCount,
+    service,
+    setsDetail,
+    dietary,
+    otherNotes: notes,
+    depositAmt,
+  };
+
+  // 顯示 loading
+  document.getElementById('confirm-body').style.display  = 'none';
+  document.getElementById('loading-screen').style.display = 'block';
+  document.getElementById('loading-text').textContent =
+    lang==='zh' ? '正在送出訂位…' : 'Sending your reservation…';
+
+  try {
+    let ref = '---';
+
+    if(SCRIPT_URL === "YOUR_APPS_SCRIPT_URL_HERE"){
+      // Dev mode
+      await new Promise(r => setTimeout(r, 1200));
+      ref = String(Math.floor(Math.random()*900)+100).padStart(3,'0');
+    } else {
+      payload.ref = null; // Let Apps Script assign sequential number
+      const formData = new URLSearchParams();
+      formData.append('data', JSON.stringify(payload));
+
+      await fetch(SCRIPT_URL, {
+        method:  'POST',
+        mode:    'no-cors',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body:    formData.toString(),
+      });
+      await new Promise(r => setTimeout(r, 1000));
+      // Ref will be shown as pending since no-cors blocks response
+      ref = '(see confirmation email)';
+    }
+
+    // 成功
+    document.getElementById('loading-screen').style.display = 'none';
+    document.getElementById('booking-ref').textContent =
+      ref === '(see confirmation email)'
+        ? lang==='zh' ? '確認信已寄出' : 'Confirmation sent'
+        : ref;
+    document.getElementById('success-screen').style.display = 'block';
+    document.getElementById('step-3').classList.add('done');
+    document.getElementById('conn-2').classList.add('active');
+
+    // Send confirmation email via EmailJS
+    const emailAddr = document.getElementById('email').value.trim();
+    if(emailAddr){
+      emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+        name:        payload.name,
+        email:       emailAddr,
+        ref:         ref === '(see confirmation email)' ? '' : ref,
+        date:        payload.date,
+        time:        payload.time,
+        guests:      payload.guests,
+        sets_detail: payload.setsDetail,
+      }).catch(err => console.warn('Email send failed:', err));
+    }
+
+  } catch(err) {
+    // 失敗：顯示錯誤，讓顧客重試
+    document.getElementById('loading-screen').style.display = 'none';
+    document.getElementById('confirm-body').style.display   = 'block';
+    const errMsg = lang==='zh'
+      ? '送出失敗，請重試或來電訂位：604-261-0049'
+      : 'Submission failed. Please try again or call us: 604-261-0049';
+    let errEl = document.getElementById('submit-error');
+    if(!errEl){
+      errEl = document.createElement('div');
+      errEl.id = 'submit-error';
+      errEl.style.cssText = 'color:var(--rose);font-size:14px;margin-bottom:14px;font-style:italic;';
+      document.getElementById('confirm-body').prepend(errEl);
+    }
+    errEl.textContent = errMsg;
+  }
+}
+
+function resetAll(){
+  guestCount=2;selectedTime=null;setOrders=[];decideLater=false;
+  document.getElementById('date').value='';
+  document.getElementById('guest-display').textContent='2';
+  document.getElementById('large-party-notice').style.display='none';
+  document.getElementById('btn-continue').disabled=false;
+  document.getElementById('btn-continue').style.opacity='';
+  document.getElementById('btn-continue').style.cursor='';
+  document.getElementById('set-full-count').textContent='0';
+  document.getElementById('set-mini-count').textContent='0';
+  document.getElementById('scc-full').classList.remove('has-items');
+  document.getElementById('scc-mini').classList.remove('has-items');
+  document.getElementById('decide-later').checked=false;
+  document.getElementById('decide-later-diet-notice').style.display='none';
+  ['name','phone','email','other-notes'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  document.getElementById('confirm-body').style.display='block';
+  document.getElementById('success-screen').style.display='none';
+  document.getElementById('day-badge-wrap').innerHTML='';
+  document.getElementById('closed-notice').style.display='none';
+  document.getElementById('time-grid').style.display='none';
+  document.getElementById('time-ph').style.display='';
+  document.getElementById('set-rows-wrap').style.display='none';
+  document.getElementById('order-summary-wrap').style.display='none';
+  document.getElementById('deposit-preview').style.display='none';
+  [1,2,3].forEach(i=>document.getElementById('step-'+i).className='step');
+  [1,2].forEach(i=>{const c=document.getElementById('conn-'+i);if(c)c.classList.remove('active');});
+  document.getElementById('step-1').classList.add('active');
+  [1,2,3].forEach(i=>document.getElementById('panel-'+i).style.display=i===1?'block':'none');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function fmtDate(s){
+  const d=new Date(s+'T00:00:00');
+  const mo=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const wd=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  if(lang==='zh'){
+    const wz=['日','一','二','三','四','五','六'];
+    return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日（${wz[d.getDay()]}）`;
+  }
+  return `${wd[d.getDay()]}, ${mo[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+}
+</script>
+</body>
+</html>
