@@ -99,6 +99,9 @@ textarea{resize:vertical;min-height:76px;line-height:1.6;}
 .time-slot.full label{opacity:.6;cursor:not-allowed;text-decoration:none;color:var(--text-muted);}
 .time-slot.full label .slot-tag{color:var(--rose);opacity:1;}
 .time-slot.full input{pointer-events:none;}
+.time-slot.warn-slot label{border-color:rgba(184,145,58,.5);background:rgba(184,145,58,.06);}
+.time-slot.warn-slot label .slot-tag{color:var(--gold);}
+.time-slot.warn-slot input:checked+label{border-color:var(--green);background:var(--green);}
 
 /* ══════════════════════════════════════
    SET ORDER BUILDER
@@ -679,23 +682,25 @@ function isWeekend(d){const w=new Date(d+'T00:00:00').getDay();return w===0||w==
 function getSlots(dateStr){
   if(!dateStr||isTuesday(dateStr))return[];
   if(isWeekend(dateStr))return[
-    {time:'11:00',label:'11:00 AM',tag:'AFTERNOON TEA'},
-    {time:'13:15',label:'1:15 PM', tag:'AFTERNOON TEA'},
-    {time:'15:30',label:'3:30 PM', tag:'AFTERNOON TEA'},
+    {time:'11:00',label:'11:00 AM',warn:false},
+    {time:'13:15',label:'1:15 PM', warn:false},
+    {time:'15:30',label:'3:30 PM', warn:false},
   ];
-  // Weekday: every 15 minutes, 11:00 AM to 2:30 PM (last seating, finish by 4:30)
-  const slots=[];
-  const times=[
-    {time:'11:00',label:'11:00 AM'},{time:'11:15',label:'11:15 AM'},
-    {time:'11:30',label:'11:30 AM'},{time:'11:45',label:'11:45 AM'},
-    {time:'12:00',label:'12:00 PM'},{time:'12:15',label:'12:15 PM'},
-    {time:'12:30',label:'12:30 PM'},{time:'12:45',label:'12:45 PM'},
-    {time:'13:00',label:'1:00 PM'}, {time:'13:15',label:'1:15 PM'},
-    {time:'13:30',label:'1:30 PM'}, {time:'13:45',label:'1:45 PM'},
-    {time:'14:00',label:'2:00 PM'}, {time:'14:15',label:'2:15 PM'},
-    {time:'14:30',label:'2:30 PM'},
+  // Weekday: every 15 minutes, 11:00 AM to 3:30 PM
+  // 3:15 and 3:30 show closing time warning
+  return[
+    {time:'11:00',label:'11:00 AM',warn:false},{time:'11:15',label:'11:15 AM',warn:false},
+    {time:'11:30',label:'11:30 AM',warn:false},{time:'11:45',label:'11:45 AM',warn:false},
+    {time:'12:00',label:'12:00 PM',warn:false},{time:'12:15',label:'12:15 PM',warn:false},
+    {time:'12:30',label:'12:30 PM',warn:false},{time:'12:45',label:'12:45 PM',warn:false},
+    {time:'13:00',label:'1:00 PM', warn:false},{time:'13:15',label:'1:15 PM', warn:false},
+    {time:'13:30',label:'1:30 PM', warn:false},{time:'13:45',label:'1:45 PM', warn:false},
+    {time:'14:00',label:'2:00 PM', warn:false},{time:'14:15',label:'2:15 PM', warn:false},
+    {time:'14:30',label:'2:30 PM', warn:false},{time:'14:45',label:'2:45 PM', warn:false},
+    {time:'15:00',label:'3:00 PM', warn:false},
+    {time:'15:15',label:'3:15 PM', warn:true},
+    {time:'15:30',label:'3:30 PM', warn:true},
   ];
-  return times;
 }
 function timeToMin(t){ const [h,m]=t.split(':').map(Number); return h*60+m; }
 
@@ -753,9 +758,9 @@ const TX={
   ph2_sub:       {en:'Sets, dietary requirements & contact info',zh:'套餐、飲食需求及聯絡資訊'},
   lbl_svc_sec:   {en:'AFTERNOON TEA SETS',zh:'下午茶套餐'},
   wpn_title:     {en:'WEEKEND POLICY',zh:'週末點餐規定'},
-  wpn_body:      {en:'Each guest aged 6 and above must order one set.',zh:'週末每位6歲（含）以上須點一份套餐。'},
+  wpn_body:      {en:'Each guest aged 6 and above must order one set. You may pre-select for some guests and confirm the rest on arrival.',zh:'6歲以上每位賓客均需點一份套餐。您可以先為部分賓客選擇，其餘可到店再確認。'},
   wkpn_title:    {en:'WEEKDAY ORDERING',zh:'平日點餐方式'},
-  wkpn_body:     {en:'Sets are optional on weekdays — you may also order individually from our menu. Each guest should order at least one item.',zh:'平日可自由選擇菜單品項，不強制點套餐，每位至少點一樣。'},
+  wkpn_body:     {en:'Please select one set per guest, or choose "decide on the day" if you\'d prefer to order on arrival.',zh:'請為每位賓客選擇一份套餐，或選擇「到店再決定」。'},
   scc_full_name: {en:'Afternoon Tea',zh:'下午茶套餐'},
   scc_full_desc: {en:'Finger sandwiches, scones & pastries',zh:'手指三明治、司康及精緻糕點'},
   scc_mini_name: {en:'Mini Afternoon Tea',zh:'迷你下午茶套餐'},
@@ -894,7 +899,12 @@ let setOrders=[];
 let decideLater=false;
 
 /* ═══════════ INIT ═══════════ */
-document.getElementById('date').min=new Date().toISOString().split('T')[0];
+const _today = new Date(); _today.setHours(0,0,0,0);
+const _maxDate = new Date(_today); _maxDate.setMonth(_maxDate.getMonth()+1);
+const _todayStr = _today.getFullYear()+'-'+String(_today.getMonth()+1).padStart(2,'0')+'-'+String(_today.getDate()).padStart(2,'0');
+const _maxStr   = _maxDate.getFullYear()+'-'+String(_maxDate.getMonth()+1).padStart(2,'0')+'-'+String(_maxDate.getDate()).padStart(2,'0');
+document.getElementById('date').min = _todayStr;
+document.getElementById('date').max = _maxStr;
 
 /* ═══════════ DATE / TIME ═══════════ */
 async function onDateChange(){
@@ -902,6 +912,35 @@ async function onDateChange(){
   const hint=document.getElementById('date-hint');
   if(hint) hint.style.display = d ? 'none' : '';
   selectedTime=null;
+
+  // Validate: must not be in the past or more than 1 month ahead
+  if(d){
+    const today = new Date(); today.setHours(0,0,0,0);
+    const maxDate = new Date(today); maxDate.setMonth(maxDate.getMonth()+1);
+    const selected = new Date(d + 'T00:00:00');
+    if(selected < today){
+      document.getElementById('date').classList.add('invalid');
+      document.getElementById('date-err').textContent = lang==='zh' ? '請選擇今天或未來的日期' : 'Please select today or a future date.';
+      document.getElementById('date-err').style.display='block';
+      document.getElementById('time-grid').style.display='none';
+      document.getElementById('time-ph').style.display='';
+      document.getElementById('day-badge-wrap').innerHTML='';
+      document.getElementById('closed-notice').style.display='none';
+      return;
+    } else if(selected > maxDate){
+      document.getElementById('date').classList.add('invalid');
+      document.getElementById('date-err').textContent = lang==='zh' ? '訂位最多只能提前一個月' : 'Reservations can only be made up to 1 month in advance.';
+      document.getElementById('date-err').style.display='block';
+      document.getElementById('time-grid').style.display='none';
+      document.getElementById('time-ph').style.display='';
+      document.getElementById('day-badge-wrap').innerHTML='';
+      document.getElementById('closed-notice').style.display='none';
+      return;
+    } else {
+      document.getElementById('date').classList.remove('invalid');
+      document.getElementById('date-err').style.display='none';
+    }
+  }
   document.getElementById('time-grid').style.display='none';
   document.getElementById('time-ph').style.display='';
   document.getElementById('day-badge-wrap').innerHTML='';
@@ -935,18 +974,51 @@ function renderTimeGrid(dateStr){
   const slots=getSlots(dateStr);
   grid.innerHTML='';
   if(!slots.length){grid.style.display='none';ph.style.display='';return;}
-  ph.style.display='none';grid.style.display='grid';
+
+  // Use local timezone for today's date (not UTC)
+  const now = new Date();
+  const todayStr = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+  const isToday = (dateStr === todayStr);
+  const nowMin = now.getHours()*60 + now.getMinutes();
+
+  // If today and all slots have passed, show fully closed message
+  const allPast = isToday && slots.every(slot => timeToMin(slot.time) <= nowMin);
+  if(allPast){
+    ph.textContent = lang==='zh' ? '今日已無可用時段' : 'No more available times today.';
+    ph.style.display=''; grid.style.display='none'; return;
+  }
+
+  ph.style.display='none'; grid.style.display='grid';
   slots.forEach(slot=>{
-    const avail=candidateTables(dateStr,slot.time,guestCount).length>0;
+    const slotMin = timeToMin(slot.time);
+    const isPast = isToday && slotMin <= nowMin;
+    const avail = !isPast && candidateTables(dateStr, slot.time, guestCount).length > 0;
     const div=document.createElement('div');
-    div.className='time-slot'+(avail?'':' full');
+    div.className='time-slot'+(!avail?' full':'')+(slot.warn?' warn-slot':'');
     const inp=document.createElement('input');
     inp.type='radio';inp.name='timeslot';inp.id='slot-'+slot.time.replace(':','');
     inp.value=slot.time;inp.disabled=!avail;
-    inp.addEventListener('change',()=>{selectedTime=slot.time;document.getElementById('time-err').style.display='none';});
+    inp.addEventListener('change',()=>{
+      selectedTime=slot.time;
+      document.getElementById('time-err').style.display='none';
+      // Show closing warning modal if this is a late slot
+      if(slot.warn){
+        showModal(
+          lang==='zh' ? '接近關店時間' : 'Near Closing Time',
+          lang==='zh'
+            ? '此時段用餐時間較短，本店平日 4:30 PM 打烊，請確認您接受此安排。'
+            : 'Please note: we close at 4:30 PM on weekdays. This seating will have limited time. Would you like to proceed?',
+          ()=>{}
+        );
+      }
+    });
     const lbl=document.createElement('label');
     lbl.htmlFor=inp.id;
-    lbl.innerHTML=`${slot.label}<span class="slot-tag">${avail?'':t('fully_booked')}</span>`;
+    const tag = isPast ? (lang==='zh'?'已過':'PASSED')
+               : !avail ? t('fully_booked')
+               : slot.warn ? (lang==='zh'?'接近關店':'NEAR CLOSING')
+               : '';
+    lbl.innerHTML=`${slot.label}<span class="slot-tag">${tag}</span>`;
     div.appendChild(inp);div.appendChild(lbl);grid.appendChild(div);
   });
 }
@@ -1228,12 +1300,31 @@ function goStep2Rev(){setStep(2);}
 function goStep2(){
   const d=document.getElementById('date').value;
   let ok=true;
-  if(!d||isTuesday(d)){
+
+  // Check date is valid, not Tuesday, and not in the past
+  if(!d){
     document.getElementById('date').classList.add('invalid');
-    document.getElementById('date-err').style.display='block';ok=false;
+    document.getElementById('date-err').textContent = lang==='zh' ? '請選擇日期' : 'Please select a date.';
+    document.getElementById('date-err').style.display='block'; ok=false;
+  } else if(isTuesday(d)){
+    document.getElementById('date').classList.add('invalid');
+    document.getElementById('date-err').style.display='block'; ok=false;
   } else {
-    document.getElementById('date').classList.remove('invalid');
-    document.getElementById('date-err').style.display='none';
+    const today = new Date(); today.setHours(0,0,0,0);
+    const maxDate = new Date(today); maxDate.setMonth(maxDate.getMonth()+1);
+    const selected = new Date(d + 'T00:00:00');
+    if(selected < today){
+      document.getElementById('date').classList.add('invalid');
+      document.getElementById('date-err').textContent = lang==='zh' ? '請選擇今天或未來的日期' : 'Please select today or a future date.';
+      document.getElementById('date-err').style.display='block'; ok=false;
+    } else if(selected > maxDate){
+      document.getElementById('date').classList.add('invalid');
+      document.getElementById('date-err').textContent = lang==='zh' ? '訂位最多只能提前一個月' : 'Reservations can only be made up to 1 month in advance.';
+      document.getElementById('date-err').style.display='block'; ok=false;
+    } else {
+      document.getElementById('date').classList.remove('invalid');
+      document.getElementById('date-err').style.display='none';
+    }
   }
   if(!selectedTime){
     document.getElementById('time-err').style.display='block';ok=false;
@@ -1266,24 +1357,11 @@ function goStep3(){
   const wknd=isWeekend(d);
   let setsErrMsg='';
 
-  if(wknd){
-    // Weekend: every guest must order a set
-    if(!decideLater && setOrders.length===0){
-      setsErrMsg = lang==='zh'
-        ? '週末每位賓客均須點一份套餐，或選擇「到店再決定」'
-        : 'On weekends, every guest must order a set — or choose "decide on the day".';
-    } else if(!decideLater && setOrders.length !== guestCount){
-      setsErrMsg = lang==='zh'
-        ? `請為每位賓客各選一份套餐（${guestCount}位需選${guestCount}份）`
-        : `Please select one set per guest — ${guestCount} guest${guestCount>1?'s':''} need${guestCount===1?'s':''} ${guestCount} set${guestCount>1?'s':''}.`;
-    }
-  } else {
-    // Weekday: sets optional, but if chosen must match guest count (or decide later)
-    if(!decideLater && setOrders.length>0 && setOrders.length !== guestCount){
-      setsErrMsg = lang==='zh'
-        ? `套餐數量須與人數相符（${guestCount}位需選${guestCount}份），或選擇「到店再決定」`
-        : `If ordering sets, please select one per guest (${guestCount} set${guestCount>1?'s':''}), or choose "decide on the day".`;
-    }
+  // Must either have at least 1 set OR decide later
+  if(!decideLater && setOrders.length === 0){
+    setsErrMsg = lang==='zh'
+      ? '請至少選擇一份套餐，或選擇「到店再決定」'
+      : 'Please select at least one set, or choose "decide on the day".';
   }
 
   if(setsErrMsg){
@@ -1310,19 +1388,36 @@ function goStep3(){
   // Only SOFA available
   if(cands.length > 0 && nonSofa.length === 0){
     const s = TABLES.find(x => x.id==='SOFA');
-    showModal(t('sofa_title'), s.msg[lang]||s.msg.en, buildAndGoStep3); return;
+    showModal(t('sofa_title'), s.msg[lang]||s.msg.en, ()=>checkWeekendPartialAndProceed(buildAndGoStep3)); return;
   }
   // RF is only non-sofa option at 4 guests (crowded)
   if(guestCount === 4 && nonSofa.length > 0 && nonSofa.every(x => x.id==='RF')){
     const rf = TABLES.find(x => x.id==='RF');
-    showModal(t('glass_title'), rf.msg[lang]||rf.msg.en, buildAndGoStep3); return;
+    showModal(t('glass_title'), rf.msg[lang]||rf.msg.en, ()=>checkWeekendPartialAndProceed(buildAndGoStep3)); return;
   }
   // SOFA only crowded at 3 guests and it's the only option
   if(guestCount === 3 && cands.length > 0 && cands.every(x => x.id==='SOFA')){
     const s = TABLES.find(x => x.id==='SOFA');
-    showModal(t('sofa_title'), s.msg[lang]||s.msg.en, buildAndGoStep3); return;
+    showModal(t('sofa_title'), s.msg[lang]||s.msg.en, ()=>checkWeekendPartialAndProceed(buildAndGoStep3)); return;
   }
-  buildAndGoStep3();
+  checkWeekendPartialAndProceed(buildAndGoStep3);
+}
+
+// Show weekend partial warning if needed, then proceed
+function checkWeekendPartialAndProceed(proceedFn){
+  const d=getDateStr();
+  if(!decideLater && isWeekend(d) && setOrders.length > 0 && setOrders.length < guestCount){
+    const remaining = guestCount - setOrders.length;
+    showModal(
+      lang==='zh' ? '注意：部分套餐未選擇' : 'Partial Order Notice',
+      lang==='zh'
+        ? `您有 ${remaining} 位賓客尚未選擇套餐。假日每位賓客均需點一份下午茶套餐，未選擇的部分請於到店時確認。`
+        : `${remaining} guest${remaining>1?'s have':' has'} not selected a set. On weekends, every guest must order one afternoon tea set — please confirm the remaining order on arrival.`,
+      proceedFn
+    );
+    return;
+  }
+  proceedFn();
 }
 
 function buildAndGoStep3(){
@@ -1397,9 +1492,9 @@ function buildAndGoStep3(){
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyORY5lToUAWfRL7p0r4sjJP7a50rbFELUr5KYR4DSLX_zkSPTrG0YRq3q9uW6KP3QAvw/exec";
 
 // ── EmailJS config ───────────────────────────────────────────────
-const EMAILJS_PUBLIC_KEY  = "--A7R1nhVuUxBAHUu";
-const EMAILJS_SERVICE_ID  = "service_uc3sh4c";
-const EMAILJS_TEMPLATE_ID = "template_fmf2h9g";
+const EMAILJS_PUBLIC_KEY  = "xAqBH1yQ_jpVWonEv";
+const EMAILJS_SERVICE_ID  = "service_biusupt";
+const EMAILJS_TEMPLATE_ID = "template_dxi6frm";
 emailjs.init(EMAILJS_PUBLIC_KEY);
 
 async function submitBooking(){
@@ -1465,34 +1560,28 @@ async function submitBooking(){
     lang==='zh' ? '正在送出訂位…' : 'Sending your reservation…';
 
   try {
-    let ref = '---';
+    // Generate ref on frontend so it can be shown immediately and sent in email
+    const now = new Date();
+    const yy = String(now.getFullYear()).slice(2);
+    const mm = String(now.getMonth()+1).padStart(2,'0');
+    const dd = String(now.getDate()).padStart(2,'0');
+    const ref = '#' + yy + mm + dd + String(Math.floor(Math.random()*900)+100).padStart(3,'0');
 
-    if(SCRIPT_URL === "YOUR_APPS_SCRIPT_URL_HERE"){
-      // Dev mode
-      await new Promise(r => setTimeout(r, 1200));
-      ref = String(Math.floor(Math.random()*900)+100).padStart(3,'0');
-    } else {
-      payload.ref = null; // Let Apps Script assign sequential number
-      const formData = new URLSearchParams();
-      formData.append('data', JSON.stringify(payload));
+    payload.ref = ref;
+    const formData = new URLSearchParams();
+    formData.append('data', JSON.stringify(payload));
 
-      await fetch(SCRIPT_URL, {
-        method:  'POST',
-        mode:    'no-cors',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body:    formData.toString(),
-      });
-      await new Promise(r => setTimeout(r, 1000));
-      // Ref will be shown as pending since no-cors blocks response
-      ref = '(see confirmation email)';
-    }
+    await fetch(SCRIPT_URL, {
+      method:  'POST',
+      mode:    'no-cors',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body:    formData.toString(),
+    });
+    await new Promise(r => setTimeout(r, 800));
 
     // 成功
     document.getElementById('loading-screen').style.display = 'none';
-    document.getElementById('booking-ref').textContent =
-      ref === '(see confirmation email)'
-        ? lang==='zh' ? '確認信已寄出' : 'Confirmation sent'
-        : ref;
+    document.getElementById('booking-ref').textContent = ref;
     document.getElementById('success-screen').style.display = 'block';
     document.getElementById('step-3').classList.add('done');
     document.getElementById('conn-2').classList.add('active');
@@ -1500,14 +1589,29 @@ async function submitBooking(){
     // Send confirmation email via EmailJS
     const emailAddr = document.getElementById('email').value.trim();
     if(emailAddr){
+      // Format sets_detail for email (replace \n with HTML line breaks won't work in plain text)
+      // Use numbered list with line separator instead
+      const setsForEmail = payload.setsDetail
+        ? payload.setsDetail.replace(/\n/g, ' | ')
+        : (decideLater ? 'To decide on arrival' : '');
+
+      // Format service label for email
+      const serviceLabel = decideLater
+        ? 'To decide on arrival'
+        : setOrders.length === 0 ? ''
+        : setOrders.every(o=>o.type==='full') ? 'Afternoon Tea'
+        : setOrders.every(o=>o.type==='mini') ? 'Mini Afternoon Tea'
+        : 'Afternoon Tea + Mini Afternoon Tea';
+
       emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
         name:        payload.name,
         email:       emailAddr,
-        ref:         ref === '(see confirmation email)' ? '' : ref,
+        ref:         payload.ref || '',
         date:        payload.date,
         time:        payload.time,
         guests:      payload.guests,
-        sets_detail: payload.setsDetail,
+        service:     serviceLabel,
+        sets_detail: setsForEmail,
       }).catch(err => console.warn('Email send failed:', err));
     }
 
