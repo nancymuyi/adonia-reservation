@@ -1525,7 +1525,8 @@ async function submitBooking(){
       }
     });
     setsDetail = lines.join('\n');
-    service    = setOrders.length===1 ? setOrders[0].type : 'mixed';
+    const _types = [...new Set(setOrders.map(o=>o.type))];
+    service    = _types.length===1 ? _types[0] : 'mixed';   // all same type -> that type; both types -> mixed
 
     // Dietary summary (deduplicated)
     const dietMap = {veg:'Vegetarian', vegan:'Vegan', df:'Dairy-Free', gf:'Gluten-Free', nut:'Nut Allergy'};
