@@ -723,7 +723,8 @@ function bookedAt(dateStr, time){
     bookings.forEach(b=>{
       const startMin = timeToMin(slotTime);
       const leaveMin = b.bufferTime ? timeToMin(b.bufferTime) : b.leavingTime ? timeToMin(b.leavingTime) + 15 : startMin + 135;
-      if(reqMin >= startMin && reqMin < leaveMin){
+      // new booking occupies [reqMin, reqMin+135): clash if the windows overlap in either direction
+      if(reqMin < leaveMin && startMin < reqMin + 135){
         booked.push(b.tableId.toUpperCase());
         if(b.tableId.toUpperCase()==='FOLD') foldGuests = Math.max(foldGuests, b.guests);
       }
