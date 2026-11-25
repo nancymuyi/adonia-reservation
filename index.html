@@ -154,6 +154,7 @@ textarea{resize:vertical;min-height:76px;line-height:1.6;}
 .diet-chip input[type="checkbox"]{position:absolute;opacity:0;width:0;}
 .diet-chip label{display:flex;align-items:center;gap:5px;padding:6px 10px;border:1px solid var(--border);border-radius:20px;cursor:pointer;font-size:13px;color:var(--text-muted);background:var(--cream-mid);transition:all .2s;white-space:nowrap;}
 .diet-chip label .chip-icon{font-size:14px;}
+.diet-chip.locked label{opacity:.45;cursor:not-allowed;background:var(--cream-dark);text-decoration:line-through;}
 .diet-chip input:checked+label{border-color:var(--green-light);background:rgba(61,107,82,.1);color:var(--green);font-weight:500;}
 .diet-chip-none{position:relative;}
 .diet-chip-none input[type="radio"]{position:absolute;opacity:0;width:0;}
@@ -505,8 +506,15 @@ footer{text-align:center;padding:22px 24px;font-size:13px;color:var(--text-muted
         </div>
         <div id="decide-later-diet-notice" class="info-box rose" style="display:none;margin-top:10px;font-size:13px;">
           <strong id="dl-notice-title">DIETARY RESTRICTIONS</strong>
-          <span id="dl-notice-body">Vegan, Gluten-Free, and Nut Allergy requests must be communicated at least 1 day before your visit. Vegetarian options are available on the day.</span>
+          <span id="dl-notice-body">Vegan, Dairy-Free, Gluten-Free and Nut Allergy requests need at least 24 hours' notice. Vegetarian options are available on the day.</span>
         </div>
+      </div>
+
+      <!-- 24-hour dietary notice -->
+      <div id="short-notice-box" class="info-box rose" style="display:none;margin-top:10px;font-size:13px;">
+        <strong id="sn-title">24 HOURS' NOTICE NEEDED</strong>
+        <span id="sn-body"></span>
+        <span id="sn-removed" style="display:none;margin-top:6px;font-weight:500;"></span>
       </div>
 
       <!-- Validation note -->
@@ -768,7 +776,10 @@ const TX={
   dl_text:       {en:'I\'ll decide my order on the day',zh:'到店時再決定'},
   dl_sub_text:   {en:'You\'re welcome to order from our full menu on arrival',zh:'到店後可從完整菜單點餐，無需提前決定'},
   dl_notice_title:{en:'DIETARY RESTRICTIONS',zh:'飲食限制提醒'},
-  dl_notice_body: {en:'Vegan, Gluten-Free, and Nut Allergy requests must be communicated at least 1 day before your visit. Vegetarian options are available on the day.',zh:'純素、無麩質及堅果過敏需提前至少1天通知。蛋奶素當日可提供。'},
+  dl_notice_body: {en:'Vegan, Dairy-Free, Gluten-Free and Nut Allergy requests need at least 24 hours\' notice. Vegetarian options are available on the day.',zh:'純素、無乳製品、無麩質及堅果過敏需提前至少24小時通知。蛋奶素當日可提供。'},
+  short_notice_title:{en:'24 HOURS\' NOTICE NEEDED',zh:'需提前 24 小時通知'},
+  short_notice_body:{en:'Your booking is less than 24 hours away, so our kitchen cannot prepare Vegan, Dairy-Free, Gluten-Free or Nut Allergy meals. You can choose the standard set or Vegetarian. If you have an allergy, please call us on 604-261-0049 before booking: we cannot guarantee allergy accommodations at short notice.',zh:'您的訂位距離現在不足 24 小時，廚房無法準備純素、無乳製品、無麩質或堅果過敏餐點，僅可選擇原本套餐或蛋奶素。如有過敏，請先致電 604-261-0049：臨時訂位我們無法保證過敏處理。'},
+  short_notice_removed:{en:'Your earlier dietary choice was removed because it needs 24 hours\' notice.',zh:'您先前選擇的飲食需求需提前 24 小時，已自動取消。'},
   sets_err:      {en:'Please select at least one set, or choose "decide on the day"',zh:'請至少選擇一份套餐，或選擇「到店時再決定」'},
   set_rows_intro:{en:'Select any dietary requirements for each set below. You\'re welcome to confirm details with us on the day.',zh:'請為每份套餐選擇飲食需求（如有）。細節可於到店時再確認。'},
   adv_title:     {en:'ADVANCE NOTICE REQUIRED',zh:'需提前通知'},
@@ -847,6 +858,7 @@ const IDMAP={
   'scc-mini-name':'scc_mini_name','scc-mini-desc':'scc_mini_desc',
   'dl-text':'dl_text','dl-sub-text':'dl_sub_text',
   'dl-notice-title':'dl_notice_title','dl-notice-body':'dl_notice_body',
+  'sn-title':'short_notice_title','sn-body':'short_notice_body',
   'sets-err':'sets_err',
   'set-rows-intro':'set_rows_intro',
   'dep-title':'dep_title','dep-body':'dep_body',
@@ -912,6 +924,7 @@ async function onDateChange(){
   const hint=document.getElementById('date-hint');
   if(hint) hint.style.display = d ? 'none' : '';
   selectedTime=null;
+  applyShortNotice();
 
   // Validate: must not be in the past or more than 1 month ahead
   if(d){
@@ -1001,6 +1014,7 @@ function renderTimeGrid(dateStr){
     inp.addEventListener('change',()=>{
       selectedTime=slot.time;
       document.getElementById('time-err').style.display='none';
+      applyShortNotice();
       // Show closing warning modal if this is a late slot
       if(slot.warn){
         showModal(
@@ -1143,6 +1157,42 @@ function buildSetRow(idx, order){
   return div;
 }
 
+/* ═══════ 24-hour rule: Vegan / Dairy-Free / Gluten-Free / Nut Allergy need 24h notice ═══════ */
+const LOCKED_DIETS=['vegan','df','gf','nut'];
+function vancouverWallMs(){
+  const p=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Vancouver',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date());
+  const g=k=>parseInt(p.find(x=>x.type===k).value,10);
+  return Date.UTC(g('year'),g('month')-1,g('day'),g('hour'),g('minute'));
+}
+function isShortNotice(){
+  const ds=getDateStr();
+  if(!ds||!selectedTime) return false;
+  const [y,m,d]=ds.split('-').map(Number);
+  const [hh,mm]=selectedTime.split(':').map(Number);
+  return (Date.UTC(y,m-1,d,hh,mm)-vancouverWallMs()) < 24*3600*1000;
+}
+/* Re-check after date/time changes: lock options, drop any now-locked choices, show notice */
+function applyShortNotice(){
+  const box=document.getElementById('short-notice-box');
+  if(!box) return;
+  const short=isShortNotice();
+  let removedAny=false;
+  if(short){
+    setOrders.forEach(o=>{
+      const kept=o.diet.filter(d=>!LOCKED_DIETS.includes(d));
+      if(kept.length!==o.diet.length){removedAny=true;o.diet=kept;}
+    });
+  }
+  box.style.display=short?'block':'none';
+  document.getElementById('sn-title').textContent=t('short_notice_title');
+  document.getElementById('sn-body').textContent=t('short_notice_body');
+  const rem=document.getElementById('sn-removed');
+  rem.textContent=removedAny?t('short_notice_removed'):'';
+  rem.style.display=removedAny?'block':'none';
+  if(setOrders.length>0) rebuildSetRows();
+  if(typeof updateOrderSummary==='function') updateOrderSummary();
+}
+
 const DIET_OPTIONS=[
   {key:'none',  icon:'✓', label_key:'diet_none'},
   {key:'veg',   icon:'🥚',label_key:'diet_veg'},
@@ -1154,6 +1204,7 @@ const DIET_OPTIONS=[
 
 function buildChips(idx, selectedDiets){
   let html='';
+  const short=isShortNotice();
   DIET_OPTIONS.forEach(opt=>{
     if(opt.key==='none'){
       const checked=selectedDiets.length===0?'checked':'';
@@ -1163,8 +1214,9 @@ function buildChips(idx, selectedDiets){
       </div>`;
     } else {
       const checked=selectedDiets.includes(opt.key)?'checked':'';
-      html+=`<div class="diet-chip">
-        <input type="checkbox" id="dc-${idx}-${opt.key}" ${checked} onchange="toggleDiet(${idx},'${opt.key}')">
+      const locked=short && LOCKED_DIETS.includes(opt.key);
+      html+=`<div class="diet-chip${locked?' locked':''}">
+        <input type="checkbox" id="dc-${idx}-${opt.key}" ${checked} ${locked?'disabled':''} onchange="toggleDiet(${idx},'${opt.key}')">
         <label for="dc-${idx}-${opt.key}"><span class="chip-icon">${opt.icon}</span>${t(opt.label_key)}</label>
       </div>`;
     }
@@ -1183,6 +1235,7 @@ function setDietNone(idx){
 }
 
 function toggleDiet(idx, key){
+  if(isShortNotice() && LOCKED_DIETS.includes(key)){ refreshRowState(idx); return; }
   const order = setOrders[idx];
   const i = order.diet.indexOf(key);
   if(i >= 0){
@@ -1336,6 +1389,7 @@ function goStep2(){
   document.getElementById('wknd-policy-note').style.display=wknd?'block':'none';
   document.getElementById('wkday-policy-note').style.display=wknd?'none':'block';
   document.getElementById('decide-later-wrap').style.display='block';
+  applyShortNotice();
 
   setStep(2);
 }
@@ -1498,6 +1552,12 @@ const EMAILJS_TEMPLATE_ID = "template_dxi6frm";
 emailjs.init(EMAILJS_PUBLIC_KEY);
 
 async function submitBooking(){
+  // Safety re-check: the 24-hour rule may have started to apply while the form was open
+  if(isShortNotice() && setOrders.some(o=>o.diet.some(d=>LOCKED_DIETS.includes(d)))){
+    applyShortNotice(); setStep(2);
+    const b=document.getElementById('short-notice-box'); if(b) b.scrollIntoView({behavior:'smooth',block:'center'});
+    return;
+  }
   // 組裝訂位資料
   const dateStr = getDateStr();
   const name    = document.getElementById('name').value.trim();
@@ -1648,6 +1708,7 @@ function resetAll(){
   document.getElementById('scc-mini').classList.remove('has-items');
   document.getElementById('decide-later').checked=false;
   document.getElementById('decide-later-diet-notice').style.display='none';
+  const _sn=document.getElementById('short-notice-box'); if(_sn) _sn.style.display='none';
   ['name','phone','email','other-notes'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   document.getElementById('confirm-body').style.display='block';
   document.getElementById('success-screen').style.display='none';
